@@ -30,7 +30,11 @@ moneda = 2
 variable = 2
 # es-GT: Tiempo máximo para esperar respuesta si el servicio está activo. Segundos
 # es-GT: Esto busca minimizar el tiempo de espera.  Si el servicio no responde adecuadamente en este tiempo, genera un timeout.
-timeout_verificacion_status = 2
+timeout_verificacion_status = 1
+if timeout_verificacion_status > 1:
+    secs = 'segundos'
+else:
+    secs = 'segundo'
 
 # Paso 1: Obtener datos del servidor: Estatus, Headers
 
@@ -49,7 +53,7 @@ try:
     if status_bool == True:
         print('El estatus del web service indica que esta funcionando correctamente')
         # es-GT: Por lo tanto corremos la solicitud de datos.
-        
+        print('Intentando obtener datos del Banco de Guatemala... espere un momento porfavor')
         try:
             # es-GT: Indicamos los headers o cabeceras, respecto al tipo de datos que enviaremos
             headers = {"content-type": "text/xml"}
@@ -63,7 +67,7 @@ try:
         #frappe.msgprint(_('Error en la Comunicacion al servidor de INFILE. Verifique al PBX: +502 2208-2208'))
             print('Algo se fregó en el pedido de datos')
         #print('La funcion retorna: ' + nl + TipoCambioDia())
-        print VariablesDisponibles()
+        #print VariablesDisponibles()
 
     else:
         print('El servicio no responde despues de ' + str(timeout_verificacion_status) + space + str(secs) +'. Intente de nuevo más tarde.')
@@ -74,9 +78,5 @@ try:
 #    requests.codes['o/']
 
 except:
-#frappe.msgprint(_('Error en la Comunicacion al servidor de INFILE. Verifique al PBX: +502 2208-2208'))
-    if timeout_verificacion_status > 1:
-        secs = 'segundos'
-    else:
-        secs = 'segundo'
-    
+    #frappe.msgprint(_('Error en la Comunicacion'))
+    print 'a'
