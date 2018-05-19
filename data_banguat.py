@@ -161,7 +161,7 @@ def VariablesDisponibles():
     <soap:{2} xmlns:xsi="{3}" xmlns:xsd="{4}" xmlns:soap="{5}">
     <soap:{6}>
     <{7} xmlns="{8}" />
+    </soap:{9}>
     </soap:{10}>
-    </soap:{11}>
     """.format(var0_xml_ver,var1_encoding,var2_envelope,var3_xsi,var4_xsd,var5_soap,var6_body,tag7_xml_servicio,var8_xmlns,var6_body,var2_envelope)
     return str(banguat_xml)

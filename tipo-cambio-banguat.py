@@ -7,8 +7,7 @@ import requests
 #import xmltodict
 # Importa las funciones que estructuran el xml de banguat
 import data_banguat
-from data_banguat import TipoCambioDia, TipoCambioDiaString, TipoCambioFechaInicial, TipoCambioFechaInicialMoneda, TipoCambioRango, TipoCambioRangoMoneda, Variables
-# VariablesDisponibles
+from data_banguat import TipoCambioDia, TipoCambioDiaString, TipoCambioFechaInicial, TipoCambioFechaInicialMoneda, TipoCambioRango, TipoCambioRangoMoneda, Variables, VariablesDisponibles
 import sys
 reload(sys)
 sys.setdefaultencoding('utf-8')
@@ -55,23 +54,24 @@ try:
             # es-GT: Indicamos los headers o cabeceras, respecto al tipo de datos que enviaremos
             headers = {"content-type": "text/xml"}
             # es-GT: Hacemos el request con POST, indicando el url, los datos, los headers y un timeout
-            response = requests.post(url, data=TipoCambioDia(), headers=headers, timeout=5)
+            response = requests.post(url, data=VariablesDisponibles(), headers=headers, timeout=5)
             # es-GT: Asignamos la respuesta a una variable para poder trabajarla
             respuesta = response.content
             # es-GT: Imprimimos la respuesta en consola
             print ('Respuesta del web service:' + nl + respuesta)
         except:
         #frappe.msgprint(_('Error en la Comunicacion al servidor de INFILE. Verifique al PBX: +502 2208-2208'))
-            print('Algo se fregó despues')
+            print('Algo se fregó en el pedido de datos')
         #print('La funcion retorna: ' + nl + TipoCambioDia())
-        print Variables(variable)
+        print VariablesDisponibles()
 
     else:
-        print('El estatus del web service indica que no funciona. Intente después.')
-    # es-GT: Estatus codes de distintas opciones
-    requests.codes['temporary_redirect']
-    requests.codes.teapot
-    requests.codes['o/']
+        print('El servicio no responde despues de ' + str(timeout_verificacion_status) + space + str(secs) +'. Intente de nuevo más tarde.')
+        # es-GT: Estatus codes de distintas opciones
+
+#    requests.codes['temporary_redirect']
+#    requests.codes.teapot
+#    requests.codes['o/']
 
 except:
 #frappe.msgprint(_('Error en la Comunicacion al servidor de INFILE. Verifique al PBX: +502 2208-2208'))
@@ -79,4 +79,4 @@ except:
         secs = 'segundos'
     else:
         secs = 'segundo'
-    print('El servicio no responde despues de ' + str(timeout_verificacion_status) + space + str(secs) +'. Intente de nuevo más tarde.')
+    
