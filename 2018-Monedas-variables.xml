@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="utf-8"?>
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+	<soap:Body>
+		<VariablesResponse xmlns="http://www.banguat.gob.gt/variables/ws/">
+				<VariablesResult>
+					<Variables>
+						<Variable>
+							<moneda>1</moneda>
+							<descripcion>Quetzales</descripcion>
+						</Variable>
+						<Variable>
+							<moneda>2</moneda>
+							<descripcion>Dólares de EE.UU.</descripcion>
+						</Variable>
+						<Variable>
+							<moneda>3</moneda>
+							<descripcion>Yenes Japoneses</descripcion>
+						</Variable>
+						<Variable>
+							<moneda>4</moneda>
+							<descripcion>Francos Belgas</descripcion>
+						</Variable>
+						<Variable>
+							<moneda>5</moneda>
+							<descripcion>Francos Suizos</descripcion>
+						</Variable>
+						<Variable>
+							<moneda>6</moneda>
+							<descripcion>Francos Franceses</descripcion>
+						</Variable>
+						<Variable>
+							<moneda>7</moneda>
+							<descripcion>Dólares Canadienses</descripcion>
+						</Variable>
+						<Variable>
+							<moneda>8</moneda>
+							<descripcion>Liras Italianas</descripcion>
+						</Variable>
+						<Variable>
+							<moneda>9</moneda>
+							<descripcion>Libras Esterlinas</descripcion>
+						</Variable>
+						<Variable>
+							<moneda>11</moneda>
+							<descripcion>Marcos Alemanes</descripcion>
+						</Variable>
+						<Variable>
+							<moneda>12</moneda>
+							<descripcion>Pesetas Españolas</descripcion>
+						</Variable>
+						<Variable>
+							<moneda>13</moneda>
+							<descripcion>Chelines Austríacos</descripcion>
+						</Variable>
+						<Variable>
+							<moneda>14</moneda>
+							<descripcion>Florines Holandeses</descripcion>
+						</Variable>
+						<Variable>
+							<moneda>15</moneda>
+							<descripcion>Coronas Suecas</descripcion>
+						</Variable>
+						<Variable>
+							<moneda>16</moneda>
+							<descripcion>Colones Costarricenses</descripcion>
+						</Variable>
+						<Variable>
+							<moneda>17</moneda>
+							<descripcion>Colones Salvadoreños</descripcion>
+						</Variable>
+						<Variable>
+							<moneda>18</moneda>
+							<descripcion>Pesos Mexicanos</descripcion>
+						</Variable>
+						<Variable>
+							<moneda>19</moneda>
+							<descripcion>Lempiras Hondureños</descripcion>
+						</Variable>
+						<Variable>
+							<moneda>21</moneda>
+							<descripcion>Córdobas Nicaragüenses</descripcion>
+						</Variable>
+						<Variable>
+							<moneda>22</moneda>
+							<descripcion>Bolivares Venezolanos</descripcion>
+						</Variable>
+						<Variable>
+							<moneda>23</moneda>
+							<descripcion>Corona Danesa</descripcion>
+						</Variable>
+						<Variable>
+							<moneda>24</moneda>
+							<descripcion>Euro</descripcion></Variable>
+						<Variable>
+							<moneda>25</moneda>
+							<descripcion>Corona Noruega</descripcion>
+						</Variable>
+						<Variable>
+							<moneda>26</moneda>
+							<descripcion>DEG</descripcion></Variable>
+						<Variable>
+							<moneda>27</moneda>
+							<descripcion>Escudo Portugués</descripcion>
+						</Variable>
+						<Variable>
+							<moneda>28</moneda>
+							<descripcion>Unidad de Cuenta del BID</descripcion>
+						</Variable>
+						<Variable>
+							<moneda>29</moneda>
+							<descripcion>Peso Argentina</descripcion>
+						</Variable>
+						<Variable>
+							<moneda>30</moneda>
+							<descripcion>Real Brasileño</descripcion>
+						</Variable>
+						<Variable>
+							<moneda>31</moneda>
+							<descripcion>Won Coreano</descripcion>
+						</Variable>
+						<Variable>
+							<moneda>32</moneda>
+							<descripcion>Dólar Hong Kong</descripcion>
+						</Variable>
+						<Variable>
+							<moneda>33</moneda>
+							<descripcion>Dólar Taiwán</descripcion>
+						</Variable>
+						<Variable>
+							<moneda>34</moneda>
+							<descripcion>Yuan China</descripcion>
+						</Variable>
+						<Variable>
+							<moneda>35</moneda>
+							<descripcion>Rupia Pakistán</descripcion>
+						</Variable>
+						<Variable>
+							<moneda>36</moneda>
+							<descripcion>Rupee India</descripcion>
+						</Variable>
+						<Variable>
+							<moneda>37</moneda>
+							<descripcion>Bolivar Fuerte</descripcion>
+						</Variable>
+						<Variable>
+							<moneda>38</moneda>
+							<descripcion>Peso Colombiano</descripcion>
+						</Variable>
+						<Variable>
+							<moneda>39</moneda>
+							<descripcion>Peso Dominicano</descripcion>
+						</Variable>
+						<Variable>
+							<moneda>40</moneda>
+							<descripcion>Ringgit Malasia</descripcion>
+						</Variable>
+					</Variables>
+				<TotalItems>38</TotalItems>
+			</VariablesResult>
+		</VariablesResponse>
+	</soap:Body>
+</soap:Envelope>

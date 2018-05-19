@@ -5,36 +5,78 @@ from datetime import datetime
 #Importa el modulo requests de Python
 import requests
 #import xmltodict
-
+# Importa las funciones que estructuran el xml de banguat
+import data_banguat
+from data_banguat import TipoCambioDia, TipoCambioDiaString, TipoCambioFechaInicial, TipoCambioFechaInicialMoneda, TipoCambioRango, TipoCambioRangoMoneda, Variables
+# VariablesDisponibles
 import sys
 reload(sys)
 sys.setdefaultencoding('utf-8')
+nl = '\n'
+space = ' '
 
-#Paso 3: Escupir la data en pantalla.
+#Compras
+# Una factura de compra en USD, implica una COMPRA de USD. Porque tendré que comprar los dolares para comprar los articulos en la factura.
+# Una factura de venta en USD, implica una VENTA de USD.  Porque tendré que vender los dolares para obtener quetzales a los ingresos de la empresa.
+
+# es-GT: Variables temporales
+# es-GT: Fecha debe ser un string de dd/mm/aaaa
+fecha_ini = '01/05/2018'
+fecha_fin = '10/05/2018'
+fecha_test = datetime.date
+# es-GT: Hay varios tipos de moneda que convierten a Quetzal, es necesario correlacionar el numero de variable de la moneda con el nombre oficial de la moneda.
+# es-GT: Esto se logra con enviar la opcion: http://www.banguat.gob.gt/variables/ws/TipoCambio.asmx?op=Variables
+
+moneda = 2
+variable = 2
+# es-GT: Tiempo máximo para esperar respuesta si el servicio está activo. Segundos
+# es-GT: Esto busca minimizar el tiempo de espera.  Si el servicio no responde adecuadamente en este tiempo, genera un timeout.
+timeout_verificacion_status = 2
+
+# Paso 1: Obtener datos del servidor: Estatus, Headers
 
 try:
     # es-GT: Agregamos la dirección del web service del BANGUAT a una variable
     url = str('http://www.banguat.gob.gt/variables/ws/TipoCambio.asmx')
     # es-GT: Hacemos el request básico y asignamos la respuesta a una variable tambien
-    r = requests.get(url)
+    r = requests.get(url, timeout=timeout_verificacion_status)
     # es-GT: Verificamos el estatus del web service usando status_code
     r.status_code
     # es-GT: Imprimimos en pantalla el resultado del status code
-    print r.status_code
-    # es-GT: Convertimos un estatus de 200 o OK a un boolean de verdadero
-    r.status_code == requests.codes.ok
+    #print ('El estatus del web service es: ' + str(r.status_code))
+    # es-GT: Convertimos un estatus de 200 o OK a un boolean de verdadero o falso.
+    status_bool = r.status_code == requests.codes.ok
+    # es-GT: Imprimimos en pantalla el resultado del status code según su resultado
+    if status_bool == True:
+        print('El estatus del web service indica que esta funcionando correctamente')
+        # es-GT: Por lo tanto corremos la solicitud de datos.
+        
+        try:
+            # es-GT: Indicamos los headers o cabeceras, respecto al tipo de datos que enviaremos
+            headers = {"content-type": "text/xml"}
+            # es-GT: Hacemos el request con POST, indicando el url, los datos, los headers y un timeout
+            response = requests.post(url, data=TipoCambioDia(), headers=headers, timeout=5)
+            # es-GT: Asignamos la respuesta a una variable para poder trabajarla
+            respuesta = response.content
+            # es-GT: Imprimimos la respuesta en consola
+            print ('Respuesta del web service:' + nl + respuesta)
+        except:
+        #frappe.msgprint(_('Error en la Comunicacion al servidor de INFILE. Verifique al PBX: +502 2208-2208'))
+            print('Algo se fregó despues')
+        #print('La funcion retorna: ' + nl + TipoCambioDia())
+        print Variables(variable)
+
+    else:
+        print('El estatus del web service indica que no funciona. Intente después.')
     # es-GT: Estatus codes de distintas opciones
     requests.codes['temporary_redirect']
     requests.codes.teapot
     requests.codes['o/']
 
-# CABECERAS: Indican el tipo de datos FUNCIONA OK!!!
-#headers = {"content-type": "text/xml"}
-# FUNCIONA OK!!!
-#response = requests.post(url, data=envio_datos, headers=headers, timeout=15)
-#respuesta = response.content
 except:
 #frappe.msgprint(_('Error en la Comunicacion al servidor de INFILE. Verifique al PBX: +502 2208-2208'))
-    print('se jodio la cosa')
-
-
+    if timeout_verificacion_status > 1:
+        secs = 'segundos'
+    else:
+        secs = 'segundo'
+    print('El servicio no responde despues de ' + str(timeout_verificacion_status) + space + str(secs) +'. Intente de nuevo más tarde.')
