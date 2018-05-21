@@ -31,3 +31,14 @@ Pending:
 	inclusiveness is determined like this: Exchange data 1 timestamp at 07:34:50  Exchange data 2 timestamp at 08:10:23
 	Anything after 07:34:50  >= is valid as data 1 rates.  Anything at 8:10:22 >=  but less than 08:10:23 is still data 1 rates
 	Anything at 08:10:23 is now data 2.  Process repeats itself for next event.
+
+Everything will end up in ERPNext as a Currency Exchange DocType
+fields:
+* Date
+* From Currency
+* To Currency
+* Exchange Rate (1 unit of "from_currency" = [? units] of "to currency"
+
+We will have to indicate all the currencies available, sourced from Banguat first
+Then user can choose to add all.  Add some.  Add manually.
+The list of most recent currencies gets updates on trigger.  Once per day.
