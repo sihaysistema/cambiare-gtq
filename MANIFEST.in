@@ -1,0 +1,18 @@
+include MANIFEST.in
+include requirements.txt
+include *.json
+include *.md
+include *.py
+include *.txt
+recursive-include cambiare_gtq *.css
+recursive-include cambiare_gtq *.csv
+recursive-include cambiare_gtq *.html
+recursive-include cambiare_gtq *.ico
+recursive-include cambiare_gtq *.js
+recursive-include cambiare_gtq *.json
+recursive-include cambiare_gtq *.md
+recursive-include cambiare_gtq *.png
+recursive-include cambiare_gtq *.py
+recursive-include cambiare_gtq *.svg
+recursive-include cambiare_gtq *.txt
+recursive-exclude cambiare_gtq *.pyc
