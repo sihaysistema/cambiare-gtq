@@ -91,21 +91,26 @@ app_license = "GNU General Public License v3.0"
 # ---------------
 
 # scheduler_events = {
-# 	"all": [
-# 		"cambiare_gtq.tasks.all"
-# 	],
-# 	"daily": [
-# 		"cambiare_gtq.tasks.daily"
-# 	],
-# 	"hourly": [
-# 		"cambiare_gtq.tasks.hourly"
-# 	],
-# 	"weekly": [
-# 		"cambiare_gtq.tasks.weekly"
-# 	]
-# 	"monthly": [
-# 		"cambiare_gtq.tasks.monthly"
-# 	]
+# 	# "all": [
+# 	# 	"cambiare_gtq.tasks.all"
+# 	# ],
+# 	# "daily": [
+# 	# 	"cambiare_gtq.tasks.daily"
+# 	# ],
+# 	# "hourly": [
+# 	# 	"cambiare_gtq.tasks.hourly"
+# 	# ],
+# 	# "cron": {
+# 	# 	"0/01 * * * *": [
+# 	# 		"cambiare_gtq.task.run_every_ten_mins"
+# 	# 	]
+# 	# }
+# 	# "weekly": [
+# 	# 	"cambiare_gtq.tasks.weekly"
+# 	# ]
+# 	# "monthly": [
+# 	# 	"cambiare_gtq.tasks.monthly"
+# 	# ]
 # }
 
 # Testing
