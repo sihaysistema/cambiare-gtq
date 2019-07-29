@@ -9,6 +9,32 @@ import requests
 import json
 import xml.dom.minidom as beauty_xml
 import xmltodict
+import datetime
+
+
+def crear_cambio_moneda(cambio, fecha):
+    '''Funcion para crear registros en Currency Exchange'''
+
+    usd_to_gtq = frappe.new_doc("Currency Exchange")
+    usd_to_gtq.date = datetime.datetime.strptime(fecha, '%d/%m/%Y').date()  # frappe.utils.nowdate()
+    usd_to_gtq.from_currency = 'USD'
+    usd_to_gtq.to_currency = 'GTQ'
+    usd_to_gtq.exchange_rate = float(cambio)
+    usd_to_gtq.for_buying = True
+    usd_to_gtq.for_selling = True
+    usd_to_gtq.save()
+
+    gtq_to_usd = frappe.new_doc("Currency Exchange")
+    gtq_to_usd.date = datetime.datetime.strptime(fecha, '%d/%m/%Y').date()   # frappe.utils.nowdate()
+    gtq_to_usd.from_currency = 'GTQ'
+    gtq_to_usd.to_currency = 'USD'
+    gtq_to_usd.exchange_rate = 1/float(cambio)
+    gtq_to_usd.for_buying = True
+    gtq_to_usd.for_selling = True
+    gtq_to_usd.save()
+
+    return 'ok'
+
 
 @frappe.whitelist()
 def preparar_peticion_banguat(opt, fecha_ini=0, fecha_fin=0, moneda=2):
@@ -28,7 +54,9 @@ def preparar_peticion_banguat(opt, fecha_ini=0, fecha_fin=0, moneda=2):
                            ['VarDolar']
 
         # frappe.msgprint(_(str(cambio['fecha']), str(cambio['referencia'])))
-        return cambio['referencia'], cambio['fecha']
+        status = crear_cambio_moneda(cambio['referencia'], cambio['fecha'])
+        return status
+        # return cambio['referencia'], cambio['fecha']
 
     elif opt == '2':
         tipo_cambio_fecha_inicial = '''<?xml version="1.0" encoding="utf-8"?>

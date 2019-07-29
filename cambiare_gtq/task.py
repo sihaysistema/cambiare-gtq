@@ -26,3 +26,8 @@ def hourly():
 	tester = frappe.new_doc("Configuration Cambiare")
 	tester.data = 'hourly'
 	tester.save()
+
+
+def verificar_configuracion():
+	'''Funcion para verificar la configuracion de cambiare'''
+	pass
