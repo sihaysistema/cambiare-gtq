@@ -4,18 +4,40 @@
 frappe.ui.form.on('Configuration Cambiare', {
 	refresh: function (frm) {
 		console.log('Se refreso form');
+		consulta_tipo_cambio_dia(frm)
+		// frappe.call({
+		// 	method: 'cambiare_gtq.api_cambiare.preparar_peticion_banguat',
+		// 	args: {
+		// 		opt: '7'
+		// 	},
+		// 	callback: function (r) {
+		// 		console.log(r.message);
+		// 	}
+		// });
 
-		frappe.call({
-			method: 'cambiare_gtq.api_cambiare.preparar_peticion_banguat',
-			args: {
-				opt: 7
-			},
-			callback: function (r) {
-				console.log(r.message);
-			}
-		});
 	}
 });
+
+let consulta_tipo_cambio_dia = function (frm) {
+	frm.page.set_primary_action(__("Tipo Cambio GTQ"), function () {
+		frappe.call({
+			method: "cambiare_gtq.api_cambiare.preparar_peticion_banguat",
+			args: {
+				opt: '1'
+			},
+			freeze: true,
+			freeze_message: __("Consultado..."),
+			callback: function (r) {
+				if (!r.exc) {
+					clearInterval(frm.page["interval"]);
+					// frm.page.set_indicator(__('Importacion Exitosa!!'), 'blue');
+					// create_reset_button(frm);
+					console.log(r.message)
+				}
+			}
+		});
+	}).addClass('btn btn-primary');
+}
 
 
 // Tabla hija
