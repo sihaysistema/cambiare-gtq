@@ -8,13 +8,10 @@ from frappe import _
 import requests
 import json
 import xml.dom.minidom as beauty_xml
+import xmltodict
 
-
+@frappe.whitelist()
 def preparar_peticion_banguat(opt, fecha_ini=0, fecha_fin=0, moneda=2):
-
-    # WSDL SOAP BANCO GUATEMALA
-    url = "http://www.banguat.gob.gt/variables/ws/TipoCambio.asmx?WSDL"
-    cabeceras = {"content-type": "text/xml"}
 
     if opt == 1:
         cambio_del_dia = '''<?xml version="1.0" encoding="utf-8"?>
@@ -88,15 +85,31 @@ def preparar_peticion_banguat(opt, fecha_ini=0, fecha_fin=0, moneda=2):
         </soap12:Body>
         </soap12:Envelope>'''
 
+        v_response = consultar_a_banguat(variables_disponibles)
+        res = xmltodict.parse(v_response)
+        monedas_disp = res['soap:Envelope']['soap:Body']['VariablesDisponiblesResponse']['VariablesDisponiblesResult']['Variables']['Variable']
+
+        listado_m = []
+        for moneda in monedas_disp:
+            listado_m.append((moneda['descripcion']))
+
+        return listado_m
     else:
         pass
 
 
-def consultar_a_banguat():
-    response = requests.post(url, data=variables, headers=cabeceras)
-    respuesta = response.content
+def consultar_a_banguat(peticion):
+    # WSDL SOAP BANCO GUATEMALA
+    url = "http://www.banguat.gob.gt/variables/ws/TipoCambio.asmx?WSDL"
+    cabeceras = {"content-type": "text/xml"}
 
-    return response
+    try:
+        response = requests.post(url, data=peticion, headers=cabeceras)
+        respuesta = response.content
+    except:
+        frappe.msgprint(_('erro consulta'))
+    else:
+        return response.content
 
     # prueba = consultar()
     # print(prueba.status_code)

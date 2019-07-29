@@ -6,7 +6,10 @@ frappe.ui.form.on('Configuration Cambiare', {
 		console.log('Se refreso form');
 
 		frappe.call({
-			method: 'cambiare_gtq.api_cambiare.variables_disponibles',
+			method: 'cambiare_gtq.api_cambiare.preparar_peticion_banguat',
+			args: {
+				opt: 7
+			},
 			callback: function (r) {
 				console.log(r.message);
 			}
