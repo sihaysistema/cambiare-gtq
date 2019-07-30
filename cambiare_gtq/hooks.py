@@ -90,28 +90,35 @@ app_license = "GNU General Public License v3.0"
 # Scheduled Tasks
 # ---------------
 
-# scheduler_events = {
-# 	# "all": [
-# 	# 	"cambiare_gtq.tasks.all"
-# 	# ],
-# 	# "daily": [
-# 	# 	"cambiare_gtq.tasks.daily"
-# 	# ],
-# 	# "hourly": [
-# 	# 	"cambiare_gtq.tasks.hourly"
-# 	# ],
-# 	# "cron": {
-# 	# 	"0/01 * * * *": [
-# 	# 		"cambiare_gtq.task.run_every_ten_mins"
-# 	# 	]
-# 	# }
-# 	# "weekly": [
-# 	# 	"cambiare_gtq.tasks.weekly"
-# 	# ]
-# 	# "monthly": [
-# 	# 	"cambiare_gtq.tasks.monthly"
-# 	# ]
-# }
+scheduler_events = {
+	# Se ejecuta cada 4 minuts
+	"all": [
+		"cambiare_gtq.tasks.all"
+	],
+	# Se ejecuta cada dia 00:00
+	"daily": [
+		"cambiare_gtq.tasks.daily"
+	],
+	# Se ejecuta a cada hora
+	"hourly": [
+		"cambiare_gtq.tasks.hourly"
+	],
+	# Cron linux especificacion freq
+	"cron": {
+		# Cada minuto
+		"0/01 * * * *": [
+			"cambiare_gtq.task.test"
+		]
+	}
+	# Se ejecuta acada semana
+	# "weekly": [
+	# 	"cambiare_gtq.tasks.weekly"
+	# ],
+	# # Se ejecuta cada mes
+	# "monthly": [
+	# 	"cambiare_gtq.tasks.monthly"
+	# ]
+}
 
 # Testing
 # -------
