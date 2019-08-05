@@ -5,28 +5,38 @@ frappe.ui.form.on('Configuration Cambiare', {
 	refresh: function (frm) {
 		console.log('Se refreso form');
 		consulta_tipo_cambio_dia(frm)
-		// frappe.call({
-		// 	method: 'cambiare_gtq.api_cambiare.preparar_peticion_banguat',
-		// 	args: {
-		// 		opt: '7'
-		// 	},
-		// 	callback: function (r) {
-		// 		console.log(r.message);
-		// 	}
-		// });
+
+		// Obtiene las monedas disponibles de la API banguat
+		frappe.call({
+			method: "cambiare_gtq.api_cambiare.preparar_peticion_banguat",
+			args: {
+				opt: '7'
+			},
+			freeze: true,
+			freeze_message: __("Obteniendo y guardando monedas disponibles del Banco de Guatemala..."),
+			callback: function (r) {
+				if (!r.exc) {
+					clearInterval(frm.page["interval"]);
+					// console.log(r.message)
+
+					frappe.meta.get_docfield('Available Currencies', 'moneda', cur_frm.doc.name).options = r.message
+					cur_frm.refresh_field('moneda');
+				}
+			}
+		});
 
 	}
 });
 
 let consulta_tipo_cambio_dia = function (frm) {
-	frm.page.set_primary_action(__("Tipo Cambio GTQ"), function () {
+	frm.page.set_secondary_action(__("Tipo Cambio GTQ"), function () {
 		frappe.call({
 			method: "cambiare_gtq.api_cambiare.preparar_peticion_banguat",
 			args: {
 				opt: '1'
 			},
 			freeze: true,
-			freeze_message: __("Consultado..."),
+			freeze_message: __("Consultado tipo cambio del dia..."),
 			callback: function (r) {
 				if (!r.exc) {
 					clearInterval(frm.page["interval"]);

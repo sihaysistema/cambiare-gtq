@@ -43,7 +43,7 @@ def crear_tipo_cambio_gtq(cambio, fecha):
 
 
 def crear_cambio_moneda(cambio, fecha):
-    '''Funcion para crear registros en Currency Exchange'''
+    '''Funcion para crear registros en Currency Exchange dt'''
 
     try:
         usd_to_gtq = frappe.new_doc("Currency Exchange")
@@ -158,15 +158,18 @@ def preparar_peticion_banguat(opt, fecha_ini=0, fecha_fin=0, moneda=2):
         </soap12:Envelope>'''
 
         v_response = consultar_a_banguat(variables_disponibles)
-        # res = xmltodict.parse(v_response)
-        # monedas_disp = res['soap:Envelope']['soap:Body']['VariablesDisponiblesResponse']['VariablesDisponiblesResult']['Variables']['Variable']
+        res = xmltodict.parse(v_response)
+        monedas_disp = res['soap:Envelope']['soap:Body']['VariablesDisponiblesResponse'] \
+                          ['VariablesDisponiblesResult']['Variables']['Variable']
 
-        # listado_m = []
-        # for moneda in monedas_disp:
-        #     listado_m.append((moneda['descripcion']))
-
-        # return listado_m
-        frappe.msgprint(_(str(v_response)))
+        listado_m = []
+        for moneda in monedas_disp:
+            # listado_m.append((moneda['descripcion']))
+            detalle = '{0} - {1}'.format(moneda['moneda'], str(moneda['descripcion']))
+            listado_m.append(detalle)
+    
+        return listado_m
+        # frappe.msgprint(_(str(listado_m)))
     else:
         pass
 

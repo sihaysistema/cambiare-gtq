@@ -104,12 +104,12 @@ scheduler_events = {
 		"cambiare_gtq.tasks.hourly"
 	],
 	# Cron linux especificacion freq
-	"cron": {
-		# Cada minuto
-		"0/01 * * * *": [
-			"cambiare_gtq.task.test"
-		]
-	}
+	# "cron": {
+	# 	# Cada minuto
+	# 	"0/01 * * * *": [
+	# 		"cambiare_gtq.task.test"
+	# 	]
+	# }
 	# Se ejecuta acada semana
 	# "weekly": [
 	# 	"cambiare_gtq.tasks.weekly"
