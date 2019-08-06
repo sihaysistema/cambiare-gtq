@@ -55,9 +55,15 @@ def verificar_configuracion(opt):
 	# Si el servicio esta activo
 	if configuracion.desactivar_consultas == 0:
 		if str(configuracion.frecuencia) == opt:
-			estado = preparar_peticion_banguat('1')
-			return estado
+			# Obtiene el cambio del dia USD
+			estado_cambio_dia = preparar_peticion_banguat('1')
+
+			# Obtiene el tipo cambio del dia en base a codigos de moneda
+			tipo_cambio_monedas = preparar_peticion_banguat('6')
+
+			return estado_cambio_dia, tipo_cambio_monedas
 		else:
+			# No hara nada
 			return
 	else:
 		return 'Servicio desactivado por usuario'
