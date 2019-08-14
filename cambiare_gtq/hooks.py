@@ -92,9 +92,9 @@ app_license = "GNU General Public License v3.0"
 
 scheduler_events = {
 	# Se ejecuta cada 4 minuts
-	"all": [
-		"cambiare_gtq.tasks.all"
-	],
+	# "all": [
+	# 	"cambiare_gtq.tasks.all"
+	# ],
 	# Se ejecuta cada dia 00:00
 	"daily": [
 		"cambiare_gtq.tasks.daily"
