@@ -25,23 +25,6 @@ frappe.ui.form.on('Configuration Cambiare', {
 			}
 		});
 
-		frm.add_custom_button(__('Button Name'), () => {
-			frappe.call({
-				method: "cambiare_gtq.api_cambiare.preparar_peticion_banguat",
-				args: {
-					opt: '6'
-				},
-				freeze: true,
-				freeze_message: __("Obteniendo y guardando monedas disponibles del Banco de Guatemala..."),
-				callback: function (r) {
-					if (!r.exc) {
-						clearInterval(frm.page["interval"]);
-						console.log(r.message)
-					}
-				}
-			});
-		});
-
 	}
 });
 

@@ -6,9 +6,11 @@ def get_data():
 	return [
 		{
 			"module_name": "Cambiare GTQ",
+			"category": "Modules",
+			"label": _("Cambiare GTQ"),
 			"color": "#27AE60",
 			"icon": "octicon octicon-graph",
 			"type": "module",
-			"label": _("Cambiare GTQ")
+			"description": "Tipo cambio",
 		}
 	]
