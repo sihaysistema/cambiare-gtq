@@ -97,11 +97,11 @@ scheduler_events = {
 	# ],
 	# Se ejecuta cada dia 00:00
 	"daily": [
-		"cambiare_gtq.tasks.daily"
+		"cambiare_gtq.task.daily"
 	],
 	# Se ejecuta a cada hora
 	"hourly": [
-		"cambiare_gtq.tasks.hourly"
+		"cambiare_gtq.task.hourly"
 	],
 	# Cron linux especificacion freq
 	# "cron": {
@@ -112,11 +112,11 @@ scheduler_events = {
 	# },
 	# Se ejecuta acada semana
 	"weekly": [
-		"cambiare_gtq.tasks.weekly"
+		"cambiare_gtq.task.weekly"
 	],
 	# # Se ejecuta cada mes
 	"monthly": [
-		"cambiare_gtq.tasks.monthly"
+		"cambiare_gtq.task.monthly"
 	]
 }
 
