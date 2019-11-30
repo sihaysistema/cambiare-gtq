@@ -109,15 +109,15 @@ scheduler_events = {
 	# 	"0/01 * * * *": [
 	# 		"cambiare_gtq.task.test"
 	# 	]
-	# }
+	# },
 	# Se ejecuta acada semana
-	# "weekly": [
-	# 	"cambiare_gtq.tasks.weekly"
-	# ],
+	"weekly": [
+		"cambiare_gtq.tasks.weekly"
+	],
 	# # Se ejecuta cada mes
-	# "monthly": [
-	# 	"cambiare_gtq.tasks.monthly"
-	# ]
+	"monthly": [
+		"cambiare_gtq.tasks.monthly"
+	]
 }
 
 # Testing

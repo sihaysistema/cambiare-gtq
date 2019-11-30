@@ -5,7 +5,7 @@
 from __future__ import unicode_literals
 import frappe
 from frappe import _
-from api_cambiare import preparar_peticion_banguat
+from cambiare_gtq.api_cambiare import preparar_peticion_banguat
 
 
 def test():
@@ -27,24 +27,26 @@ def all():
 
 def daily():
 	'''Se ejecuta cada 24 horas'''
-	estado = verificar_configuracion('Cada dia')
-	return
+	estado = verificar_configuracion('Cada Dia')
+	return estado
 
 
 def hourly():
 	'''Se ejecuta cada 60 minutos'''
 	estado = verificar_configuracion('Cada Hora')
-	return
+	return estado
 
 
 def weekly():
 	'''Se ejecuta cada semana'''
-	pass
+	estado = verificar_configuracion('Cada Semana')
+	return estado
 
 
 def monthly():
 	'''Se ejecuta cada mes'''
-	pass
+	estado = verificar_configuracion('Cada Mes')
+	return estado
 
 
 def verificar_configuracion(opt):
@@ -59,11 +61,11 @@ def verificar_configuracion(opt):
 			estado_cambio_dia = preparar_peticion_banguat('1')
 
 			# Obtiene el tipo cambio del dia en base a codigos de moneda
-			tipo_cambio_monedas = preparar_peticion_banguat('6')
+			# tipo_cambio_monedas = preparar_peticion_banguat('6')
 
-			return estado_cambio_dia, tipo_cambio_monedas
+			return estado_cambio_dia  #, tipo_cambio_monedas
 		else:
 			# No hara nada
-			return
+			pass
 	else:
 		return 'Servicio desactivado por usuario'
