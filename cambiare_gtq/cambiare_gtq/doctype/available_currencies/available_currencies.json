@@ -14,7 +14,7 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Moneda",
-   "options": "1 - Quetzales - GTQ\n2 - D\u00f3lares de EE.UU. - USD\n3 - Yenes Japoneses - JPY\n6 - Francos Franceses - CHF\n7 - D\u00f3lares Canadienses - CAD\n8 - Liras Italianas - GBP\n15 - Coronas Suecas - SEK\n16 - Colones Costarricenses - CRC\n17 - Colones Salvadore\u00f1os - SVC\n18 - Pesos Mexicanos - MXN\n19 - Lempiras Hondure\u00f1os - HNL\n21 - C\u00f3rdobas Nicarag\u00fcenses - NIO\n22 - Bolivares Venezolanos - VEF\n23 - Corona Danesa - DKK\n24 - Euro - EUR\n25 - Corona Noruega - NOK\n29 - Peso Argentina - ARS\n30 - Real Brasile\u00f1o - BRL\n31 - Won Coreano - KPW\n32 - D\u00f3lar Hong Kong - HKD\n33 - D\u00f3lar Taiw\u00e1n - TWD\n34 - Yuan China - CNY\n35 - Rupia Pakist\u00e1n - PKR\n36 - Rupee India - INR\n37 - Bolivar Fuerte - BOB\n38 - Peso Colombiano - COP\n39 - Peso Dominicano - DOP\n40 - Ringgit Malasia - MYR\n41 - Bol\u00edvar Soberano - BOV\n42 - Zloty - PLN",
+   "options": "\n3 - Yenes Japoneses - JPY\n6 - Francos Franceses - CHF\n7 - D\u00f3lares Canadienses - CAD\n8 - Liras Italianas - GBP\n15 - Coronas Suecas - SEK\n16 - Colones Costarricenses - CRC\n17 - Colones Salvadore\u00f1os - SVC\n18 - Pesos Mexicanos - MXN\n19 - Lempiras Hondure\u00f1os - HNL\n21 - C\u00f3rdobas Nicarag\u00fcenses - NIO\n22 - Bolivares Venezolanos - VEF\n23 - Corona Danesa - DKK\n24 - Euro - EUR\n25 - Corona Noruega - NOK\n29 - Peso Argentina - ARS\n30 - Real Brasile\u00f1o - BRL\n31 - Won Coreano - KPW\n32 - D\u00f3lar Hong Kong - HKD\n33 - D\u00f3lar Taiw\u00e1n - TWD\n34 - Yuan China - CNY\n35 - Rupia Pakist\u00e1n - PKR\n36 - Rupee India - INR\n37 - Bolivar Fuerte - BOB\n38 - Peso Colombiano - COP\n39 - Peso Dominicano - DOP\n40 - Ringgit Malasia - MYR\n41 - Bol\u00edvar Soberano - BOV\n42 - Zloty - PLN",
    "search_index": 1
   },
   {
@@ -32,7 +32,7 @@
   }
  ],
  "istable": 1,
- "modified": "2020-01-27 17:06:11.303222",
+ "modified": "2020-01-29 12:11:47.703255",
  "modified_by": "Administrator",
  "module": "Cambiare GTQ",
  "name": "Available Currencies",

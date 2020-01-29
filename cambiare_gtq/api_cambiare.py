@@ -10,6 +10,7 @@ import json
 import xml.dom.minidom as beauty_xml
 import xmltodict
 import datetime
+import re
 
 
 def crear_tipo_cambio_gtq(cambio, fecha, moneda_cod_letras='USD'):
@@ -151,34 +152,38 @@ def preparar_peticion_banguat(opt, fecha_ini=0, fecha_fin=0, moneda=2):
     # Despliega el tipo de cambio correspondiente a una variable (moneda) dada. (Formato: moneda=2)
     elif opt == '6':
         # Monedas hardcode
-        monedas = [
-            {'cod': 'MXN', 'mon': 18},
-            {'cod': 'HNL', 'mon': 19},
-            {'cod': 'SVC', 'mon': 17},
-            {'cod': 'NIO', 'mon': 21},
-            {'cod': 'CRC', 'mon': 16},
-            {'cod': 'CAD', 'mon': 7},
-            {'cod': 'EUR', 'mon': 24}
-        ]
+        # monedas = [
+        #     {'cod': 'MXN', 'mon': 18},
+        #     {'cod': 'HNL', 'mon': 19},
+        #     {'cod': 'SVC', 'mon': 17},
+        #     {'cod': 'NIO', 'mon': 21},
+        #     {'cod': 'CRC', 'mon': 16},
+        #     {'cod': 'CAD', 'mon': 7},
+        #     {'cod': 'EUR', 'mon': 24}
+        # ]
 
-        for moneda in monedas:
-            variables = '''<?xml version="1.0" encoding="utf-8"?>
-            <soap12:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap12="http://www.w3.org/2003/05/soap-envelope">
-            <soap12:Body>
-                <Variables xmlns="http://www.banguat.gob.gt/variables/ws/">
-                <variable>{}</variable>
-                </Variables>
-            </soap12:Body>
-            </soap12:Envelope>'''.format(moneda['mon'])
+        monedas = obtener_listado_monedas()
+        if monedas != False:
+            for moneda in monedas:
+                variables = '''<?xml version="1.0" encoding="utf-8"?>
+                <soap12:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap12="http://www.w3.org/2003/05/soap-envelope">
+                <soap12:Body>
+                    <Variables xmlns="http://www.banguat.gob.gt/variables/ws/">
+                    <variable>{}</variable>
+                    </Variables>
+                </soap12:Body>
+                </soap12:Envelope>'''.format(moneda['mon'])
 
-            cambio_dia = xmltodict.parse(consultar_a_banguat(variables))
-            cambio = cambio_dia['soap:Envelope']['soap:Body']['VariablesResponse'] \
-                               ['VariablesResult']['CambioDia']['Var']
+                cambio_dia = xmltodict.parse(consultar_a_banguat(variables))
+                cambio = cambio_dia['soap:Envelope']['soap:Body']['VariablesResponse'] \
+                                ['VariablesResult']['CambioDia']['Var']
 
-            status = crear_cambio_moneda(cambio['venta'], cambio['fecha'], moneda_cod_letras=moneda['cod'])
-            status_custom_dt = crear_tipo_cambio_gtq(cambio['venta'], cambio['fecha'], moneda_cod_letras=moneda['cod'])
+                status = crear_cambio_moneda(cambio['venta'], cambio['fecha'], moneda_cod_letras=moneda['cod'])
+                status_custom_dt = crear_tipo_cambio_gtq(cambio['venta'], cambio['fecha'], moneda_cod_letras=moneda['cod'])
 
-        return status
+            return status
+        else:
+            return False
 
     # Despliega las variables (con relacion a la moneda) disponibles para consulta.
     elif opt == '7':
@@ -218,3 +223,24 @@ def consultar_a_banguat(peticion):
         frappe.msgprint(_('error consulta'))
     else:
         return response.content
+
+
+def obtener_listado_monedas():
+    monedas_db = frappe.db.sql('''SELECT DISTINCT moneda 
+                                   FROM `tabAvailable Currencies`
+                               ''', as_dict=True)
+    
+    mone_ok = []
+
+    if len(monedas_db) > 0:
+        for mone in monedas_db:
+            x = re.split('-', mone['moneda'])  # -> ['1 ', ' Quetzales ', ' GTQ']
+
+            mone_ok.append({
+                'cod': x[2].strip(),  # -> 'GTQ'
+                'mon': int(x[0].strip())   # -> '1'
+            })
+
+        return mone_ok
+    else:
+        return False

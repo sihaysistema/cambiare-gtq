@@ -61,9 +61,9 @@ def verificar_configuracion(opt):
 			estado_cambio_dia = preparar_peticion_banguat('1')
 
 			# Obtiene el tipo cambio del dia en base a codigos de moneda
-			# tipo_cambio_monedas = preparar_peticion_banguat('6')
+			tipo_cambio_monedas = preparar_peticion_banguat('6')
 
-			return estado_cambio_dia  #, tipo_cambio_monedas
+			return estado_cambio_dia, tipo_cambio_monedas
 		else:
 			# No hara nada
 			pass
