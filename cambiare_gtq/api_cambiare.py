@@ -14,10 +14,19 @@ import re
 
 
 def crear_tipo_cambio_gtq(cambio, fecha, moneda_cod_letras='USD'):
-    '''Funcion para crear registros en custom dt'''
+    '''Funcion para crear registros en custom doctype (Currency Exchange GTQ)
+
+    Args:
+        cambio: monto conversion
+        fecha: fecha del tipo cambio
+        moneda_cod_letras: Codigo de moneda ISO
+
+    Returns:
+        Retorna mensajes con la descripcion status de lo procesado
+    '''
 
     try:
-        usd_to_gtq = frappe.new_doc("Currency Exchange GTQ")
+        usd_to_gtq = frappe.new_doc("Currency Exchange GTQ")  # Crea un nuevo registro para el doctype
         usd_to_gtq.date = datetime.datetime.strptime(fecha, '%d/%m/%Y').date()  # frappe.utils.nowdate()
         usd_to_gtq.from_currency = moneda_cod_letras
         usd_to_gtq.to_currency = 'GTQ'
@@ -44,7 +53,16 @@ def crear_tipo_cambio_gtq(cambio, fecha, moneda_cod_letras='USD'):
 
 
 def crear_cambio_moneda(cambio, fecha, moneda_cod_letras='USD'):
-    '''Funcion para crear registros en Currency Exchange dt'''
+    '''Funcion para crear registros en doctype (Currency Exchange)
+
+    Args:
+        cambio: monto conversion
+        fecha: fecha del tipo cambio
+        moneda_cod_letras: Codigo de moneda ISO
+
+    Returns:
+        Retorna mensajes con la descripcion status de lo procesado
+    '''
 
     try:
         usd_to_gtq = frappe.new_doc("Currency Exchange")
@@ -75,7 +93,19 @@ def crear_cambio_moneda(cambio, fecha, moneda_cod_letras='USD'):
 
 @frappe.whitelist()
 def preparar_peticion_banguat(opt, fecha_ini=0, fecha_fin=0, moneda=2):
-    '''Funcion encargada de formatear el template especifico para cada peticion a banguat'''
+    '''Funcion encargada de preparar y enviar la peticion hacia el banco de guatemala, para mas
+    info puede ver las opciones aqui: https://www.banguat.gob.gt/variables/ws/TipoCambio.asmx
+
+    Args:
+        opt: numero de peticion a preparar
+        fecha_ini: fecha inicial
+        fecha_fin: fecha final
+        moneda: codigo de monedas del banco de guatemala, (ver variables disponibles en
+        https://www.banguat.gob.gt/variables/ws/TipoCambio.asmx?op=Variables)
+
+    Returns:
+        Retorna el status segun la opcion escogida a consumir del webservice
+    '''
 
     # Cambio del dia en dolares
     if opt == '1':
@@ -86,17 +116,20 @@ def preparar_peticion_banguat(opt, fecha_ini=0, fecha_fin=0, moneda=2):
         </soap12:Body>
         </soap12:Envelope>'''
 
+        # Usamos la libreria xmltodict, para parsearlo a diccionario
         cambio_dia = xmltodict.parse(consultar_a_banguat(cambio_del_dia))
+        # accesamos al contenido de varDolar con la ayuda de xmltodict
         cambio = cambio_dia['soap:Envelope']['soap:Body']['TipoCambioDiaResponse'] \
                            ['TipoCambioDiaResult']['CambioDolar'] \
                            ['VarDolar']
 
-        # frappe.msgprint(_(str(cambio['fecha']), str(cambio['referencia'])))
+        # Funciones para registrar el tipo de cambio consumido del webservice en el ERPNEXT
         status = crear_cambio_moneda(cambio['referencia'], cambio['fecha'])
         status_custom = crear_tipo_cambio_gtq(cambio['referencia'], cambio['fecha'])
 
         return status
 
+    # WIP:
     # Despliega la informacion del tipo de cambio, en dolares, desde una fecha dada hasta el dia corriente
     # (Formato: fecha_ini=dd/mm/aaaa).
     elif opt == '2':
@@ -109,6 +142,7 @@ def preparar_peticion_banguat(opt, fecha_ini=0, fecha_fin=0, moneda=2):
         </soap12:Body>
         </soap12:Envelope>'''.format(fecha_ini)
 
+    # WIP
     # Despliega la informacion para la variable indicada a partir de una fecha y moneda indicada.
     # (Formato: fecha_ini=dd/mm/aaaa moneda=02).
     elif opt == '3':
@@ -122,6 +156,7 @@ def preparar_peticion_banguat(opt, fecha_ini=0, fecha_fin=0, moneda=2):
         </soap12:Body>
         </soap12:Envelope>'''.format(fecha_ini, moneda)
 
+    # WIP
     # Despliega la informacion para dolares en el periodo de tiempo dado.
     # (Formato: fecha_ini=dd/mm/aaaa fecha_fin=dd/mm/aaaa)
     elif opt == '4':
@@ -135,6 +170,7 @@ def preparar_peticion_banguat(opt, fecha_ini=0, fecha_fin=0, moneda=2):
         </soap12:Body>
         </soap12:Envelope>'''.format(fecha_ini, fecha_fin)
 
+    # WIP:
     # Despliega la informacion para la variable indicada en el periodo de tiempo y la moneda dada.
     # (Formato: fecha_ini=dd/mm/aaaa fecha_fin=dd/mm/aaaa moneda=02)
     elif opt == '5':
@@ -163,7 +199,7 @@ def preparar_peticion_banguat(opt, fecha_ini=0, fecha_fin=0, moneda=2):
         # ]
 
         monedas = obtener_listado_monedas()
-        if monedas != False:
+        if monedas != False:  # Si existen monedas
             for moneda in monedas:
                 variables = '''<?xml version="1.0" encoding="utf-8"?>
                 <soap12:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap12="http://www.w3.org/2003/05/soap-envelope">
@@ -174,11 +210,15 @@ def preparar_peticion_banguat(opt, fecha_ini=0, fecha_fin=0, moneda=2):
                 </soap12:Body>
                 </soap12:Envelope>'''.format(moneda['mon'])
 
+                # Convierte de la respuesta XML a diccionario
                 cambio_dia = xmltodict.parse(consultar_a_banguat(variables))
+                # Accedemos al valor Var
                 cambio = cambio_dia['soap:Envelope']['soap:Body']['VariablesResponse'] \
                                 ['VariablesResult']['CambioDia']['Var']
 
+                # Crea registro en Currency Exchange
                 status = crear_cambio_moneda(cambio['venta'], cambio['fecha'], moneda_cod_letras=moneda['cod'])
+                # Crea registro en Currency Exchange GTQ
                 status_custom_dt = crear_tipo_cambio_gtq(cambio['venta'], cambio['fecha'], moneda_cod_letras=moneda['cod'])
 
             return status
@@ -186,6 +226,7 @@ def preparar_peticion_banguat(opt, fecha_ini=0, fecha_fin=0, moneda=2):
             return False
 
     # Despliega las variables (con relacion a la moneda) disponibles para consulta.
+    # Todas las monedas disponibles del webservice
     elif opt == '7':
         variables_disponibles = '''<?xml version="1.0" encoding="utf-8"?>
         <soap12:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap12="http://www.w3.org/2003/05/soap-envelope">
@@ -204,14 +245,23 @@ def preparar_peticion_banguat(opt, fecha_ini=0, fecha_fin=0, moneda=2):
             # listado_m.append((moneda['descripcion']))
             detalle = '{0} - {1}'.format(moneda['moneda'], str(moneda['descripcion']))
             listado_m.append(detalle)
-    
+
         return listado_m
-        # frappe.msgprint(_(str(listado_m)))
+
     else:
         pass
 
 
 def consultar_a_banguat(peticion):
+    '''Funcion encargada de consumir el webservice del banco de Guatemala, segun el
+    tipo de peticion que se le pase por argumento
+
+    Args:
+        peticion: peticion XML a consumir
+
+    Returns:
+        Retorna XML con data de x peticion
+    '''
     # WSDL SOAP BANCO GUATEMALA
     url = "http://www.banguat.gob.gt/variables/ws/TipoCambio.asmx?WSDL"
     cabeceras = {"content-type": "text/xml"}
@@ -220,27 +270,47 @@ def consultar_a_banguat(peticion):
         response = requests.post(url, data=peticion, headers=cabeceras)
         respuesta = response.content
     except:
-        frappe.msgprint(_('error consulta'))
+        frappe.msgprint(_('Inconveniente al tratar de obtener informacion del Banco de Guatemala: '+str(frappe.get_traceback())))
     else:
         return response.content
 
 
 def obtener_listado_monedas():
+    '''Funcion encargada de obtener las monedas configuradas de la tabla hija
+       Currency Available del doctype padre Configuracion Cambiare GTQ y las retorna
+       en un formato especial para ser procesadas.
+
+    Args:
+        Ninguno
+
+    Returns:
+        Retorna un listado de monedas con el siguiente formato:
+        monedas = [
+            {'cod': 'MXN', 'mon': 18},
+            {'cod': 'HNL', 'mon': 19},
+            {'cod': 'SVC', 'mon': 17},
+            {'cod': 'NIO', 'mon': 21},
+            {'cod': 'CRC', 'mon': 16},
+            {'cod': 'CAD', 'mon': 7},
+            {'cod': 'EUR', 'mon': 24}
+        ]
+    '''
+    # Selecciona las monedas omitiendo los duplicados, como lista de diccionarios
     monedas_db = frappe.db.sql('''SELECT DISTINCT moneda 
-                                   FROM `tabAvailable Currencies`
-                               ''', as_dict=True)
-    
+                                FROM `tabAvailable Currencies`''', as_dict=True)
+    # Contendra las monedas
     mone_ok = []
 
-    if len(monedas_db) > 0:
+    if len(monedas_db) > 0:  # Si existe por lo menos un elemento
         for mone in monedas_db:
+            # Con expresion regular, separamos el string donde se encuentre un guion
             x = re.split('-', mone['moneda'])  # -> ['1 ', ' Quetzales ', ' GTQ']
 
             mone_ok.append({
                 'cod': x[2].strip(),  # -> 'GTQ'
-                'mon': int(x[0].strip())   # -> '1'
+                'mon': int(x[0].strip())  # -> '1'
             })
 
         return mone_ok
     else:
-        return False
+        return False  # Si no hay data return False

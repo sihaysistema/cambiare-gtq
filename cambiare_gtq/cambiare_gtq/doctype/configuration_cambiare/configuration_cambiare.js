@@ -29,6 +29,7 @@ frappe.ui.form.on('Configuration Cambiare', {
 });
 
 let consulta_tipo_cambio_dia = function (frm) {
+	// Agrega un boton para consumir el webservice manualmente
 	frm.page.set_secondary_action(__("Tipo Cambio Manual"), function () {
 		frappe.call({
 			method: "cambiare_gtq.api_cambiare.preparar_peticion_banguat",
