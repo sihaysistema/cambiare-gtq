@@ -11,6 +11,23 @@ app_color = "#27AE60"
 app_email = "m.monroyc22@gmail.com"
 app_license = "GNU General Public License v3.0"
 
+'''
+# This needs to be enabled and bench restarted before running bench export-fixtures
+such that the Custom Fields listed below can be exported.
+fixtures = [
+	{"dt": "Custom Field", "filters": [
+        [
+            "name", "in", [
+                "Currency Exchange-validity_date_ranges",
+				"Currency Exchange-valid_to",
+				"Currency Exchange-col_break",
+				"Currency Exchange-valid_from"
+            ]
+        ]
+    ]
+	}
+]
+'''
 # Includes in <head>
 # ------------------
 
