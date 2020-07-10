@@ -92,31 +92,53 @@ def crear_cambio_moneda(cambio, fecha, factor_1usd_xgtq, moneda_cod_letras='USD'
     '''
 
     try:
-        usd_to_gtq = frappe.new_doc("Currency Exchange")
-        usd_to_gtq.date = datetime.datetime.strptime(fecha, '%d/%m/%Y').date()  # frappe.utils.nowdate()
-        usd_to_gtq.from_currency = moneda_cod_letras
-        usd_to_gtq.to_currency = 'GTQ'
-        usd_to_gtq.exchange_rate = float(cambio)
-        usd_to_gtq.for_buying = True
-        usd_to_gtq.for_selling = True
-        usd_to_gtq.save()
+        if moneda_cod_letras != 'USD':
+            result = float(factor_1usd_xgtq) / float(cambio)
+            any_to_gtq = frappe.new_doc("Currency Exchange")  # Crea un nuevo registro para el doctype
+            any_to_gtq.date = datetime.datetime.strptime(fecha, '%d/%m/%Y').date()  # frappe.utils.nowdate()
+            any_to_gtq.from_currency = moneda_cod_letras
+            any_to_gtq.to_currency = 'GTQ'
+            any_to_gtq.exchange_rate = float(result)
+            any_to_gtq.for_buying = True
+            any_to_gtq.for_selling = True
+            any_to_gtq.save()
+
+        else:
+            usd_to_gtq = frappe.new_doc("Currency Exchange")
+            usd_to_gtq.date = datetime.datetime.strptime(fecha, '%d/%m/%Y').date()  # frappe.utils.nowdate()
+            usd_to_gtq.from_currency = moneda_cod_letras
+            usd_to_gtq.to_currency = 'GTQ'
+            usd_to_gtq.exchange_rate = float(cambio)
+            usd_to_gtq.for_buying = True
+            usd_to_gtq.for_selling = True
+            usd_to_gtq.save()
     except:
         return 'No se pudo crear tipo cambio USD to GTQ, intentar manualmente'
     else:
         try:
-            gtq_to_usd = frappe.new_doc("Currency Exchange")
-            gtq_to_usd.date = datetime.datetime.strptime(fecha, '%d/%m/%Y').date()   # frappe.utils.nowdate()
-            gtq_to_usd.from_currency = 'GTQ'
-            gtq_to_usd.to_currency = moneda_cod_letras
-            gtq_to_usd.exchange_rate = 1/float(cambio)
-            gtq_to_usd.for_buying = True
-            gtq_to_usd.for_selling = True
-            gtq_to_usd.save()
+            if moneda_cod_letras != 'USD':
+                result = float(factor_1usd_xgtq) / float(cambio)
+                any_to_usd = frappe.new_doc("Currency Exchange")
+                any_to_usd.date = datetime.datetime.strptime(fecha, '%d/%m/%Y').date()   # frappe.utils.nowdate()
+                any_to_usd.from_currency = 'GTQ'
+                any_to_usd.to_currency = moneda_cod_letras
+                any_to_usd.exchange_rate = 1/float(result)
+                any_to_usd.for_buying = True
+                any_to_usd.for_selling = True
+                any_to_usd.save()
+            else:
+                gtq_to_usd = frappe.new_doc("Currency Exchange")
+                gtq_to_usd.date = datetime.datetime.strptime(fecha, '%d/%m/%Y').date()   # frappe.utils.nowdate()
+                gtq_to_usd.from_currency = 'GTQ'
+                gtq_to_usd.to_currency = moneda_cod_letras
+                gtq_to_usd.exchange_rate = 1/float(cambio)
+                gtq_to_usd.for_buying = True
+                gtq_to_usd.for_selling = True
+                gtq_to_usd.save()
         except:
             return 'No se pudo crear tipo cambio GTQ to USD, intentar manualmente'
         else:
             return 'Currency Exchange OK'
-
 
 @frappe.whitelist()
 def preparar_peticion_banguat(opt, fecha_ini=0, fecha_fin=0, moneda=2):
