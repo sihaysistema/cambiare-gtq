@@ -1,0 +1,16 @@
+[
+ {
+  "contributed_translation_doctype_name": null,
+  "docstatus": 0,
+  "doctype": "Translation",
+  "language": "es",
+  "modified": "2020-07-09 18:51:01.197621",
+  "name": "f6e51ae49e",
+  "parent": null,
+  "parentfield": null,
+  "parenttype": null,
+  "source_name": "Could not create USD to GTQ exchange rate, please try generating GTQ manually",
+  "status": "Saved",
+  "target_name": "No se pudo crear tipo cambio USD to GTQ, intentar manualmente GTQ"
+ }
+]

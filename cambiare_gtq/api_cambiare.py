@@ -12,8 +12,7 @@ import xmltodict
 import datetime
 import re
 
-
-def crear_tipo_cambio_gtq(cambio, fecha, moneda_cod_letras='USD'):
+def crear_tipo_cambio_gtq(cambio, fecha, factor_1usd_xgtq, moneda_cod_letras='USD'):
     '''Funcion para crear registros en custom doctype (Currency Exchange GTQ)
 
     Args:
@@ -26,33 +25,61 @@ def crear_tipo_cambio_gtq(cambio, fecha, moneda_cod_letras='USD'):
     '''
 
     try:
-        usd_to_gtq = frappe.new_doc("Currency Exchange GTQ")  # Crea un nuevo registro para el doctype
-        usd_to_gtq.date = datetime.datetime.strptime(fecha, '%d/%m/%Y').date()  # frappe.utils.nowdate()
-        usd_to_gtq.from_currency = moneda_cod_letras
-        usd_to_gtq.to_currency = 'GTQ'
-        usd_to_gtq.exchange_rate = float(cambio)
-        usd_to_gtq.for_buying = True
-        usd_to_gtq.for_selling = True
-        usd_to_gtq.save()
+
+        if moneda_cod_letras != 'USD':
+            result = float(factor_1usd_xgtq) / float(cambio)
+            any_to_gtq = frappe.new_doc("Currency Exchange GTQ")  # Crea un nuevo registro para el doctype
+            any_to_gtq.date = datetime.datetime.strptime(fecha, '%d/%m/%Y').date()  # frappe.utils.nowdate()
+            any_to_gtq.from_currency = moneda_cod_letras
+            any_to_gtq.to_currency = 'GTQ'
+            any_to_gtq.exchange_rate = float(result)
+            any_to_gtq.for_buying = True
+            any_to_gtq.for_selling = True
+            any_to_gtq.save()
+
+        else:
+            usd_to_gtq = frappe.new_doc("Currency Exchange GTQ")  # Crea un nuevo registro para el doctype
+            usd_to_gtq.date = datetime.datetime.strptime(fecha, '%d/%m/%Y').date()  # frappe.utils.nowdate()
+            usd_to_gtq.from_currency = moneda_cod_letras
+            usd_to_gtq.to_currency = 'GTQ'
+            usd_to_gtq.exchange_rate = float(cambio)
+            usd_to_gtq.for_buying = True
+            usd_to_gtq.for_selling = True
+            usd_to_gtq.save()
+
     except:
-        return 'No se pudo crear tipo cambio USD to GTQ, intentar manualmente GTQ'
+        return _('Could not create USD to GTQ exchange rate, please try generating GTQ manually')
+
     else:
         try:
-            gtq_to_usd = frappe.new_doc("Currency Exchange GTQ")
-            gtq_to_usd.date = datetime.datetime.strptime(fecha, '%d/%m/%Y').date()   # frappe.utils.nowdate()
-            gtq_to_usd.from_currency = 'GTQ'
-            gtq_to_usd.to_currency = moneda_cod_letras
-            gtq_to_usd.exchange_rate = 1/float(cambio)
-            gtq_to_usd.for_buying = True
-            gtq_to_usd.for_selling = True
-            gtq_to_usd.save()
+
+            if moneda_cod_letras != 'USD':
+                result = float(factor_1usd_xgtq) / float(cambio)
+                any_to_usd = frappe.new_doc("Currency Exchange GTQ")
+                any_to_usd.date = datetime.datetime.strptime(fecha, '%d/%m/%Y').date()   # frappe.utils.nowdate()
+                any_to_usd.from_currency = 'GTQ'
+                any_to_usd.to_currency = moneda_cod_letras
+                any_to_usd.exchange_rate = 1/float(result)
+                any_to_usd.for_buying = True
+                any_to_usd.for_selling = True
+                any_to_usd.save()
+
+            else:
+                gtq_to_usd = frappe.new_doc("Currency Exchange GTQ")
+                gtq_to_usd.date = datetime.datetime.strptime(fecha, '%d/%m/%Y').date()   # frappe.utils.nowdate()
+                gtq_to_usd.from_currency = 'GTQ'
+                gtq_to_usd.to_currency = moneda_cod_letras
+                gtq_to_usd.exchange_rate = 1/float(cambio)
+                gtq_to_usd.for_buying = True
+                gtq_to_usd.for_selling = True
+                gtq_to_usd.save()
+
         except:
             return 'No se pudo crear tipo cambio GTQ to USD, intentar manualmente GTQ'
         else:
             return 'Currency Exchange GTQ OK'
 
-
-def crear_cambio_moneda(cambio, fecha, moneda_cod_letras='USD'):
+def crear_cambio_moneda(cambio, fecha, factor_1usd_xgtq, moneda_cod_letras='USD'):
     '''Funcion para crear registros en doctype (Currency Exchange)
 
     Args:
@@ -124,8 +151,8 @@ def preparar_peticion_banguat(opt, fecha_ini=0, fecha_fin=0, moneda=2):
                            ['VarDolar']
 
         # Funciones para registrar el tipo de cambio consumido del webservice en el ERPNEXT
-        status = crear_cambio_moneda(cambio['referencia'], cambio['fecha'])
-        status_custom = crear_tipo_cambio_gtq(cambio['referencia'], cambio['fecha'])
+        status = crear_cambio_moneda(cambio['referencia'], cambio['fecha'], '7.80')
+        status_custom = crear_tipo_cambio_gtq(cambio['referencia'], cambio['fecha'], '7.80')
 
         return status
 
@@ -198,8 +225,20 @@ def preparar_peticion_banguat(opt, fecha_ini=0, fecha_fin=0, moneda=2):
         #     {'cod': 'EUR', 'mon': 24}
         # ]
 
+        # en_US:  We prepare a default USD to GTQ query because we need it to convert other currencies to GTQ. Banguat webservice has USD as currency reference
+        cambio_usd = '''<?xml version="1.0" encoding="utf-8"?>
+        <soap12:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap12="http://www.w3.org/2003/05/soap-envelope">
+        <soap12:Body>
+            <TipoCambioDia xmlns="http://www.banguat.gob.gt/variables/ws/" />
+        </soap12:Body>
+        </soap12:Envelope>'''
+        # en_US: We consult the webservice to generate a response
+        exchange = xmltodict.parse(consultar_a_banguat(cambio_usd))
+        # en_US: We access the var value (X) from the response, this is 1 USD to X GTQ
+        factor_1usd_xgtq = exchange['soap:Envelope']['soap:Body']['TipoCambioDiaResponse']['TipoCambioDiaResult']['CambioDolar']['VarDolar']
+
         monedas = obtener_listado_monedas()
-        if monedas != False:  # Si existen monedas
+        if monedas != False:  # en_US: We find out if currencies exist to generate exchange records es: Averiguamos si existen monedas para generar registros de cambio.
             for moneda in monedas:
                 variables = '''<?xml version="1.0" encoding="utf-8"?>
                 <soap12:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap12="http://www.w3.org/2003/05/soap-envelope">
@@ -210,16 +249,16 @@ def preparar_peticion_banguat(opt, fecha_ini=0, fecha_fin=0, moneda=2):
                 </soap12:Body>
                 </soap12:Envelope>'''.format(moneda['mon'])
 
-                # Convierte de la respuesta XML a diccionario
+                # Obtiene el cambio del dia y Convierte de la respuesta XML a diccionario
                 cambio_dia = xmltodict.parse(consultar_a_banguat(variables))
                 # Accedemos al valor Var
                 cambio = cambio_dia['soap:Envelope']['soap:Body']['VariablesResponse'] \
                                 ['VariablesResult']['CambioDia']['Var']
 
                 # Crea registro en Currency Exchange
-                status = crear_cambio_moneda(cambio['venta'], cambio['fecha'], moneda_cod_letras=moneda['cod'])
+                status = crear_cambio_moneda(cambio['venta'], cambio['fecha'], factor_1usd_xgtq['referencia'], moneda_cod_letras=moneda['cod'])
                 # Crea registro en Currency Exchange GTQ
-                status_custom_dt = crear_tipo_cambio_gtq(cambio['venta'], cambio['fecha'], moneda_cod_letras=moneda['cod'])
+                status_custom_dt = crear_tipo_cambio_gtq(cambio['venta'], cambio['fecha'], factor_1usd_xgtq['referencia'], moneda_cod_letras=moneda['cod'])
 
             return status
         else:
@@ -278,7 +317,8 @@ def consultar_a_banguat(peticion):
 def obtener_listado_monedas():
     '''Funcion encargada de obtener las monedas configuradas de la tabla hija
        Currency Available del doctype padre Configuracion Cambiare GTQ y las retorna
-       en un formato especial para ser procesadas.
+       en un formato especial para ser procesadas.  Averigua cuales monedas desea el usuario
+       para generar conversiones.
 
     Args:
         Ninguno
@@ -286,6 +326,7 @@ def obtener_listado_monedas():
     Returns:
         Retorna un listado de monedas con el siguiente formato:
         monedas = [
+            {'cod': 'USD', 'mon': 2}
             {'cod': 'MXN', 'mon': 18},
             {'cod': 'HNL', 'mon': 19},
             {'cod': 'SVC', 'mon': 17},
@@ -295,7 +336,8 @@ def obtener_listado_monedas():
             {'cod': 'EUR', 'mon': 24}
         ]
     '''
-    # Selecciona las monedas omitiendo los duplicados, como lista de diccionarios
+    # Selecciona las monedas disponibles que han sido seleccionadas en configuracion cambiare
+    # omitiendo los duplicados, como lista de diccionarios.
     monedas_db = frappe.db.sql('''SELECT DISTINCT moneda 
                                 FROM `tabAvailable Currencies`''', as_dict=True)
     # Contendra las monedas
@@ -303,7 +345,7 @@ def obtener_listado_monedas():
 
     if len(monedas_db) > 0:  # Si existe por lo menos un elemento
         for mone in monedas_db:
-            # Con expresion regular, separamos el string donde se encuentre un guion
+            # Con expresion regular, separamos el string donde se encuentre un guión
             x = re.split('-', mone['moneda'])  # -> ['1 ', ' Quetzales ', ' GTQ']
 
             mone_ok.append({
