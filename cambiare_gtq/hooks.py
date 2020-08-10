@@ -2,6 +2,8 @@
 from __future__ import unicode_literals
 from . import __version__ as app_version
 
+from cambiare_gtq.fixtures import fill_fixtures
+
 app_name = "cambiare_gtq"
 app_title = "Cambiare GTQ"
 app_publisher = "Si Hay Sistema"
@@ -12,31 +14,32 @@ app_email = "m.monroyc22@gmail.com"
 app_license = "GNU General Public License v3.0"
 
 # This needs to be enabled and bench restarted before running bench export-fixtures such that the Custom Fields listed below can be exported.
-fixtures = [
-    {"dt": "Translation", "filters": [
-        [
-            "source_name", "in", [
-                "Could not create USD to GTQ exchange rate, please try generating GTQ manually",
-            ]
-        ]
-    ]
-    }
-]
-'''
-fixtures = [
-    {"dt": "Custom Field", "filters": [
-        [
-            "name", "in", [
-                "Currency Exchange-validity_date_ranges",
-                "Currency Exchange-valid_to",
-                "Currency Exchange-col_break",
-                "Currency Exchange-valid_from"
-            ]
-        ]
-    ]
-    }
-]
-'''
+fixtures = fill_fixtures()
+# [
+#     {"dt": "Translation", "filters": [
+#         [
+#             "source_name", "in", [
+#                 "Could not create USD to GTQ exchange rate, please try generating GTQ manually",
+#             ]
+#         ]
+#     ]
+#     }
+# ]
+# '''
+# fixtures = [
+#     {"dt": "Custom Field", "filters": [
+#         [
+#             "name", "in", [
+#                 "Currency Exchange-validity_date_ranges",
+#                 "Currency Exchange-valid_to",
+#                 "Currency Exchange-col_break",
+#                 "Currency Exchange-valid_from"
+#             ]
+#         ]
+#     ]
+#     }
+# ]
+# '''
 # Includes in <head>
 # ------------------
 
