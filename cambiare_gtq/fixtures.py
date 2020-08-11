@@ -36,9 +36,20 @@ def fill_fixtures():
         ]
     }
     
+    currencies = {
+        "dt": "Currency", "filters": [
+            [
+                "name", "in", [
+                    "GTQ",
+                ]
+            ]
+        ]
+    }
+    
 
     # NEW FUNCTIONALITY FOR EXPORTING
     fixtures_fillup.append(custom_field)
     fixtures_fillup.append(translations)
+    fixtures_fillup.append(currencies)
 
     return fixtures_fillup
