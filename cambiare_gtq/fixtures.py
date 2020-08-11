@@ -112,7 +112,7 @@ def fill_fixtures():
                     "KZT",
                     "LAK",
                     "LBP",
-                    "LKR,
+                    "LKR",
                     "LRD",
                     "LSL",
                     "LYD",
