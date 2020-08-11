@@ -24,7 +24,7 @@ def fill_fixtures():
             ]
         ]
     }
-    
+
     translations = {
         "dt": "Translation", "filters": [
             [
@@ -35,17 +35,64 @@ def fill_fixtures():
             ]
         ]
     }
-    
+
     currencies = {
         "dt": "Currency", "filters": [
             [
                 "name", "in", [
                     "GTQ",
+                    "AED",
+                    "AFN",
+                    "ALL",
+                    "AMD",
+                    "ARS",
+                    "AUD",
+                    "AWG",
+                    "BAM",
+                    "BBD",
+                    "BDT",
+                    "BGN",
+                    "BHD",
+                    "BIF",
+                    "BMD",
+                    "BND",
+                    "BOB",
+                    "BRL",
+                    "BSD",
+                    "BTN",
+                    "BWP",
+                    "BZD",
+                    "CAD",
+                    "CHF",
+                    "CLP",
+                    "CNY",
+                    "COP",
+                    "CRC",
+                    "CUP",
+                    "CVE",
+                    "CZK",
+                    "DJF",
+                    "DKK",
+                    "DOP",
+                    "DZD",
+                    "EGP",
+                    "ERN",
+                    "ETB",
+                    "EUR",
+                    "FJD",
+                    "FKP",
+                    "GBP",
+                    "GHS",
+                    "GIP",
+                    "GMD",
+                    "GNF",
+                    "GYD",
+                    "HKD",
+                    "HNL",
                 ]
             ]
         ]
     }
-    
 
     # NEW FUNCTIONALITY FOR EXPORTING
     fixtures_fillup.append(custom_field)
