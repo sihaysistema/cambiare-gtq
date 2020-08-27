@@ -43,6 +43,14 @@ fixtures = fill_fixtures()
 # Includes in <head>
 # ------------------
 
+jenv = {
+    "methods": [
+        'test1:cambiare_gtq.test1',
+        'currency_in_words:cambiare_gtq.currency_in_words'
+    ]
+}
+
+
 # include js, css files in header of desk.html
 # app_include_css = "/assets/cambiare_gtq/css/cambiare_gtq.css"
 # app_include_js = "/assets/cambiare_gtq/js/cambiare_gtq.js"
