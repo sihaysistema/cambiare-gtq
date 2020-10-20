@@ -13,10 +13,16 @@ app_license = "GNU General Public License v3.0"
 
 # This needs to be enabled and bench restarted before running bench export-fixtures such that the Custom Fields listed below can be exported.
 fixtures = [
-    {"dt": "Translation", "filters": [
+    {"dt": "Exchange Rate Type", "filters": [
         [
-            "source_name", "in", [
-                "Could not create USD to GTQ exchange rate, please try generating GTQ manually",
+            "code", "in", [
+                "ER-MA",
+                "ER-YA",
+                "ER-YTD",
+                "ER-EOM",
+                "ER-RID",
+                "ER-HIST",
+                "ER-RR"
             ]
         ]
     ]
@@ -24,6 +30,14 @@ fixtures = [
 ]
 '''
 fixtures = [
+        {"dt": "Translation", "filters": [
+        [
+            "source_name", "in", [
+                "Could not create USD to GTQ exchange rate, please try generating GTQ manually",
+            ]
+        ]
+    ]
+    },
     {"dt": "Custom Field", "filters": [
         [
             "name", "in", [

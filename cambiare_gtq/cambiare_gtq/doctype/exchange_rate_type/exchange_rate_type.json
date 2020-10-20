@@ -5,7 +5,8 @@
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
-  "title"
+  "title",
+  "code"
  ],
  "fields": [
   {
@@ -13,9 +14,14 @@
    "fieldtype": "Data",
    "label": "Title",
    "unique": 1
+  },
+  {
+   "fieldname": "code",
+   "fieldtype": "Data",
+   "label": "Code"
   }
  ],
- "modified": "2020-10-19 12:11:44.419164",
+ "modified": "2020-10-19 16:55:13.157341",
  "modified_by": "Administrator",
  "module": "Cambiare GTQ",
  "name": "Exchange Rate Type",
@@ -46,13 +52,16 @@
    "write": 1
   },
   {
+   "create": 1,
+   "delete": 1,
    "email": 1,
    "export": 1,
    "print": 1,
    "read": 1,
    "report": 1,
    "role": "Accounts User",
-   "share": 1
+   "share": 1,
+   "write": 1
   }
  ],
  "quick_entry": 1,

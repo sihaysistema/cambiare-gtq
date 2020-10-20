@@ -1,0 +1,79 @@
+[
+ {
+  "code": "ER-MA",
+  "docstatus": 0,
+  "doctype": "Exchange Rate Type",
+  "modified": "2020-10-19 16:55:32.450269",
+  "name": "Monthly Average Exchange Rate",
+  "parent": null,
+  "parentfield": null,
+  "parenttype": null,
+  "title": "Monthly Average Exchange Rate"
+ },
+ {
+  "code": "ER-YA",
+  "docstatus": 0,
+  "doctype": "Exchange Rate Type",
+  "modified": "2020-10-19 16:56:16.241758",
+  "name": "Yearly Average Exchange Rate",
+  "parent": null,
+  "parentfield": null,
+  "parenttype": null,
+  "title": "Yearly Average Exchange Rate"
+ },
+ {
+  "code": "ER-EOM",
+  "docstatus": 0,
+  "doctype": "Exchange Rate Type",
+  "modified": "2020-10-19 16:57:24.242407",
+  "name": "End of the Month Exchange Rate",
+  "parent": null,
+  "parentfield": null,
+  "parenttype": null,
+  "title": "End of the Month Exchange Rate"
+ },
+ {
+  "code": "ER-HIST",
+  "docstatus": 0,
+  "doctype": "Exchange Rate Type",
+  "modified": "2020-10-19 17:01:10.922299",
+  "name": "Historical Exchange Rate",
+  "parent": null,
+  "parentfield": null,
+  "parenttype": null,
+  "title": " Historical Exchange Rate"
+ },
+ {
+  "code": "ER-RR",
+  "docstatus": 0,
+  "doctype": "Exchange Rate Type",
+  "modified": "2020-10-19 16:59:57.070562",
+  "name": "Report Range Average Exchange Rate",
+  "parent": null,
+  "parentfield": null,
+  "parenttype": null,
+  "title": "Report Range Average Exchange Rate"
+ },
+ {
+  "code": "ER-RID",
+  "docstatus": 0,
+  "doctype": "Exchange Rate Type",
+  "modified": "2020-10-19 17:04:48.563767",
+  "name": "Exchange Rate of Report Issue Date",
+  "parent": null,
+  "parentfield": null,
+  "parenttype": null,
+  "title": "Exchange Rate of Report Issue Date"
+ },
+ {
+  "code": "ER-YTD",
+  "docstatus": 0,
+  "doctype": "Exchange Rate Type",
+  "modified": "2020-10-19 18:39:39.657385",
+  "name": "Year to Date Average Exchange Rate",
+  "parent": null,
+  "parentfield": null,
+  "parenttype": null,
+  "title": "Year to Date Average Exchange Rate"
+ }
+]
