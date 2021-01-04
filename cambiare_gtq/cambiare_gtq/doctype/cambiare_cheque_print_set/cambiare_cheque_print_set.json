@@ -17,10 +17,10 @@
  ],
  "fields": [
   {
+   "default": "Now",
    "fieldname": "creation_date",
    "fieldtype": "Date",
-   "label": "Date",
-   "options": "Now"
+   "label": "Date"
   },
   {
    "fieldname": "source_bank_account",
@@ -72,7 +72,7 @@
    "label": "Get Cheque Payments"
   }
  ],
- "modified": "2021-01-04 15:33:16.628031",
+ "modified": "2021-01-04 15:40:57.634866",
  "modified_by": "Administrator",
  "module": "Cambiare GTQ",
  "name": "Cambiare Cheque Print Set",
