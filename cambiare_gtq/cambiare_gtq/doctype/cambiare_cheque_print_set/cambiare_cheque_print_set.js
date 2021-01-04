@@ -21,7 +21,7 @@ frappe.ui.form.on('Cambiare Cheque Print Set', {
         frappe.call({
             method: 'cambiare_gtq.cambiare_gtq.doctype.cambiare_cheque_print_set.cambiare_cheque_print_set.get_data',
             args: {
-                filters: {
+                params: {
                     company: frm.doc.company,
                     source_bank_acc: frm.doc.source_bank_account,
                     start_date: frm.doc.start_date,
@@ -37,6 +37,22 @@ frappe.ui.form.on('Cambiare Cheque Print Set', {
                 //     frm.reload_doc();
                 // }
                 console.log(r.message);
+
+                frm.doc.cheque_to_print = []
+                frm.refresh_field("cheque_to_print");
+
+                r.message.forEach(element => {
+                    frm.add_child("cheque_to_print", {
+                        transaction_id: element.transaction_id,
+                        cheque_no: element.cheque_no,
+                        amount: element.amount,
+                        party_type: element.party_type,
+                        third_party: element.third_party
+                    });
+                });
+                frm.refresh_field("cheque_to_print");
+
+                frm.save();
             }
         });
     }
