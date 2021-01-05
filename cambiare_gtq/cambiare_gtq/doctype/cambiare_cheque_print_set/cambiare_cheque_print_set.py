@@ -109,3 +109,19 @@ def get_data_of_journal_entry(filters):
         })
 
     return all_data
+
+
+def get_address(party_name, party_type):
+    addr = frappe.db.sql(
+        f"""
+        SELECT DL.link_name AS name_entity, AD.city AS city,
+        AD.pincode AS pincode
+        FROM `tabAddress` AS AD
+        JOIN `tabDynamic Link` AS DL
+        WHERE DL.parent = AD.name
+        AND DL.parenttype='Address' AND DL.link_doctype='{party_type}'
+        AND DL.link_name='{party_name}' AND AD.is_primary_address=1;
+        """, as_dict=True
+    )[0] or []
+
+    return addr
