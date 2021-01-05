@@ -4,13 +4,16 @@
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
+  "date",
   "source_bank_account",
+  "transaction_start_date",
+  "column_break_4",
   "company",
   "currency",
-  "transaction_start_date",
   "transaction_end_date",
-  "amended_from",
-  "table_7"
+  "section_break_8",
+  "check_to_print",
+  "amended_from"
  ],
  "fields": [
   {
@@ -46,6 +49,25 @@
    "label": "Transaction End Date"
   },
   {
+   "fieldname": "date",
+   "fieldtype": "Date",
+   "label": "Date"
+  },
+  {
+   "fieldname": "column_break_4",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_8",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "check_to_print",
+   "fieldtype": "Table",
+   "label": "Check to Print",
+   "options": "Check to Print"
+  },
+  {
    "fieldname": "amended_from",
    "fieldtype": "Link",
    "label": "Amended From",
@@ -53,15 +75,10 @@
    "options": "Cambiare Cheque Print Set",
    "print_hide": 1,
    "read_only": 1
-  },
-  {
-   "fieldname": "table_7",
-   "fieldtype": "Table",
-   "options": "Check to Print"
   }
  ],
  "is_submittable": 1,
- "modified": "2021-01-05 09:40:41.299861",
+ "modified": "2021-01-05 11:13:43.820291",
  "modified_by": "Administrator",
  "module": "Cambiare GTQ",
  "name": "Cambiare Cheque Print Set",

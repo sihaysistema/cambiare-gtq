@@ -5,9 +5,12 @@
  "engine": "InnoDB",
  "field_order": [
   "company",
+  "section_break_2",
   "transaction_start_date",
+  "column_break_4",
   "transaction_end_date",
-  "table_4",
+  "section_break_6",
+  "check_to_print",
   "amended_from"
  ],
  "fields": [
@@ -28,9 +31,22 @@
    "label": "Transaction End Date"
   },
   {
-   "fieldname": "table_4",
+   "fieldname": "column_break_4",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "check_to_print",
    "fieldtype": "Table",
-   "options": "Check to Print"
+   "label": "Check To Print",
+   "options": "Cambiare Cheque Print Set"
+  },
+  {
+   "fieldname": "section_break_2",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "section_break_6",
+   "fieldtype": "Section Break"
   },
   {
    "fieldname": "amended_from",
@@ -43,7 +59,7 @@
   }
  ],
  "is_submittable": 1,
- "modified": "2021-01-05 09:45:31.518257",
+ "modified": "2021-01-05 11:15:45.503325",
  "modified_by": "Administrator",
  "module": "Cambiare GTQ",
  "name": "Batch Check Print",
