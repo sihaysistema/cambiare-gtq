@@ -38,7 +38,7 @@
    "fieldname": "check_to_print",
    "fieldtype": "Table",
    "label": "Check To Print",
-   "options": "Cambiare Cheque Print Set"
+   "options": "Cheque Print Set Bank Account"
   },
   {
    "fieldname": "section_break_2",
@@ -59,7 +59,7 @@
   }
  ],
  "is_submittable": 1,
- "modified": "2021-01-05 11:15:45.503325",
+ "modified": "2021-01-05 16:16:33.074894",
  "modified_by": "Administrator",
  "module": "Cambiare GTQ",
  "name": "Batch Check Print",
