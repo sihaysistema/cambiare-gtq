@@ -50,7 +50,7 @@ frappe.ui.form.on('Cambiare Cheque Print Set', {
         });
     },
     refresh: function (frm) {
-        frm.add_custom_button(__('TEST'), () => {
+        frm.add_custom_button(__('Generar Lotes PDF'), () => {
             let data_je = [];
             let data_pe = [];
 
@@ -64,9 +64,10 @@ frappe.ui.form.on('Cambiare Cheque Print Set', {
                 }
             });
 
-            console.log(data_je, data_pe);
-
-
+            const data_per_doctype = [
+                { doctype: 'Payment Entry', valores: data_pe },
+                { doctype: 'Journal Entry', valores: data_je }
+            ]
 
             const dialog = new frappe.ui.Dialog({
                 title: __('Print Documents'),
@@ -87,16 +88,14 @@ frappe.ui.form.on('Cambiare Cheque Print Set', {
                 if (!args) return;
 
                 // Primero se imprimen los cheques para payment entry
-                for (const iterator of ['Payment Entry', 'Journal Entry']) {
-                    console.log(iterator)
-
+                for (const iterator of data_per_doctype) {
                     const default_print_format = 'Standard'; // frappe.get_meta(iterator).default_print_format;
                     const with_letterhead = args.with_letterhead ? 1 : 0;
                     const print_format = args.print_sel ? args.print_sel : 'Standard'; //default_print_format;
-                    const json_string = JSON.stringify(data_pe);
+                    const json_string = JSON.stringify(iterator.valores);
 
                     const w = window.open('/api/method/frappe.utils.print_format.download_multi_pdf?' +
-                        'doctype=' + encodeURIComponent(iterator) +
+                        'doctype=' + encodeURIComponent(iterator.doctype) +
                         '&name=' + encodeURIComponent(json_string) +
                         '&format=' + encodeURIComponent(print_format) +
                         '&no_letterhead=' + (with_letterhead ? '0' : '1'));
