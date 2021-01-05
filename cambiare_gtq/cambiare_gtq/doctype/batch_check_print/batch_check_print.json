@@ -1,39 +1,21 @@
 {
- "creation": "2021-01-05 09:28:48.334366",
+ "creation": "2021-01-05 09:45:31.518257",
  "doctype": "DocType",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
-  "source_bank_account",
   "company",
-  "currency",
   "transaction_start_date",
   "transaction_end_date",
-  "amended_from",
-  "table_7"
+  "table_4",
+  "amended_from"
  ],
  "fields": [
   {
-   "default": "default_bank_account",
-   "fetch_from": "Company.default_bank_account",
-   "fieldname": "source_bank_account",
-   "fieldtype": "Link",
-   "label": "Source Bank Account",
-   "options": "Account"
-  },
-  {
    "fieldname": "company",
-   "fieldtype": "Link",
+   "fieldtype": "Data",
    "label": "Company",
    "options": "Company"
-  },
-  {
-   "fetch_from": "Account.account_currency",
-   "fieldname": "currency",
-   "fieldtype": "Link",
-   "label": "Currency",
-   "options": "Currency",
-   "read_only": 1
   },
   {
    "fieldname": "transaction_start_date",
@@ -42,33 +24,32 @@
   },
   {
    "fieldname": "transaction_end_date",
-   "fieldtype": "Date",
+   "fieldtype": "Data",
    "label": "Transaction End Date"
+  },
+  {
+   "fieldname": "table_4",
+   "fieldtype": "Table",
+   "options": "Check to Print"
   },
   {
    "fieldname": "amended_from",
    "fieldtype": "Link",
    "label": "Amended From",
    "no_copy": 1,
-   "options": "Cambiare Cheque Print Set",
+   "options": "Batch Check Print",
    "print_hide": 1,
    "read_only": 1
-  },
-  {
-   "fieldname": "table_7",
-   "fieldtype": "Table",
-   "options": "Check to Print"
   }
  ],
  "is_submittable": 1,
- "modified": "2021-01-05 09:40:41.299861",
+ "modified": "2021-01-05 09:45:31.518257",
  "modified_by": "Administrator",
  "module": "Cambiare GTQ",
- "name": "Cambiare Cheque Print Set",
+ "name": "Batch Check Print",
  "owner": "Administrator",
  "permissions": [
   {
-   "cancel": 1,
    "create": 1,
    "delete": 1,
    "email": 1,
@@ -78,11 +59,9 @@
    "report": 1,
    "role": "System Manager",
    "share": 1,
-   "submit": 1,
    "write": 1
   },
   {
-   "cancel": 1,
    "create": 1,
    "delete": 1,
    "email": 1,
@@ -92,7 +71,6 @@
    "report": 1,
    "role": "Accounts Manager",
    "share": 1,
-   "submit": 1,
    "write": 1
   },
   {
