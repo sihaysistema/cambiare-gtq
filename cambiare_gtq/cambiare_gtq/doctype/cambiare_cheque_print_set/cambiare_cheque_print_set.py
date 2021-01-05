@@ -50,7 +50,7 @@ def get_data_of_payment_entry(filters):
 
     data = frappe.db.sql(
         f"""
-            SELECT 'Payment Entry' AS transaction_id, reference_no AS cheque_no,
+            SELECT name AS id, 'Payment Entry' AS transaction_id, reference_no AS cheque_no,
             paid_amount AS amount, party_type, party AS third_party
             FROM `tabPayment Entry`
             WHERE mode_of_payment='Cheque' AND company='{filters.company}'
@@ -100,6 +100,7 @@ def get_data_of_journal_entry(filters):
                                                    'party_type': ['!=', '']},
                                           fieldname=['party_type', 'party'], as_dict=1)[0]
         all_data.append({
+            'id': data_je.get('id'),
             'transaction_id': 'Journal Entry',
             'cheque_no': cheque_no,
             'amount': amount,
