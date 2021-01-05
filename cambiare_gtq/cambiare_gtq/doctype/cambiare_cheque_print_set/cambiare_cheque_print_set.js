@@ -40,7 +40,10 @@ frappe.ui.form.on('Cambiare Cheque Print Set', {
                         amount: element.amount,
                         party_type: element.party_type,
                         third_party: element.third_party,
-                        id: element.id
+                        remark: element.remark,
+                        po_box: element.po_box,
+                        city: element.city,
+                        pincode: element.pincode,
                     });
                 });
                 frm.refresh_field("cheque_to_print");

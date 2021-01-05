@@ -59,6 +59,24 @@ def get_data_of_payment_entry(filters):
         """, as_dict=True
     ) or []
 
+    if data:
+        for dd in data:
+            addr = get_address(dd.get('third_party'), dd.get('party_type'))
+            if addr:
+                dd.update({
+                    'remark': addr.get('remark', ''),
+                    'po_box': addr.get('po_box', ''),
+                    'city': addr.get('city', ''),
+                    'pincode': addr.get('pincode', '')
+                })
+            else:
+                dd.update({
+                    'remark': '',
+                    'po_box': '',
+                    'city': '',
+                    'pincode': ''
+                })
+
     return data
 
 
@@ -108,10 +126,39 @@ def get_data_of_journal_entry(filters):
             'third_party': party_type.get('party', '')
         })
 
+    if all_data:
+        for dd in all_data:
+            addr = get_address(dd.get('third_party'), dd.get('party_type'))
+            if addr:
+                dd.update({
+                    'remark': addr.get('remark', ''),
+                    'po_box': addr.get('po_box', ''),
+                    'city': addr.get('city', ''),
+                    'pincode': addr.get('pincode', '')
+                })
+            else:
+                dd.update({
+                    'remark': '',
+                    'po_box': '',
+                    'city': '',
+                    'pincode': ''
+                })
+
     return all_data
 
 
 def get_address(party_name, party_type):
+    """
+    Obtiene direccion de xx Proveedor/Cliente
+
+    Args:
+        party_name (str): Nombre Proveedor/cliente
+        party_type (str): Supplier/Customer
+
+    Returns:
+        dict: [description]
+    """
+
     addr = frappe.db.sql(
         f"""
         SELECT DL.link_name AS name_entity, AD.city AS city,
@@ -122,6 +169,9 @@ def get_address(party_name, party_type):
         AND DL.parenttype='Address' AND DL.link_doctype='{party_type}'
         AND DL.link_name='{party_name}' AND AD.is_primary_address=1;
         """, as_dict=True
-    )[0] or []
+    ) or {}
+
+    if addr:
+        return addr[0]
 
     return addr

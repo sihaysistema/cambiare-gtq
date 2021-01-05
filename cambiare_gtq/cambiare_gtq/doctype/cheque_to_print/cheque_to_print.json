@@ -9,7 +9,12 @@
   "amount",
   "party_type",
   "third_party",
-  "id"
+  "id",
+  "column_break_7",
+  "remark",
+  "po_box",
+  "city",
+  "pincode"
  ],
  "fields": [
   {
@@ -57,10 +62,38 @@
    "fieldtype": "Data",
    "label": "ID",
    "read_only": 1
+  },
+  {
+   "fieldname": "column_break_7",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "remark",
+   "fieldtype": "Data",
+   "label": "Remark",
+   "read_only": 1
+  },
+  {
+   "fieldname": "po_box",
+   "fieldtype": "Data",
+   "label": "PO Box",
+   "read_only": 1
+  },
+  {
+   "fieldname": "city",
+   "fieldtype": "Data",
+   "label": "City",
+   "read_only": 1
+  },
+  {
+   "fieldname": "pincode",
+   "fieldtype": "Data",
+   "label": "Pincode",
+   "read_only": 1
   }
  ],
  "istable": 1,
- "modified": "2021-01-05 11:04:07.383002",
+ "modified": "2021-01-05 15:12:26.126326",
  "modified_by": "Administrator",
  "module": "Cambiare GTQ",
  "name": "Cheque To Print",
