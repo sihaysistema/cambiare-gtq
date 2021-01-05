@@ -89,7 +89,6 @@ frappe.ui.form.on('Cambiare Cheque Print Set', {
 
             dialog.set_primary_action(__('Print'), args => {
                 if (!args) return;
-
                 // Primero se imprimen los cheques para payment entry
                 for (const iterator of data_per_doctype) {
                     const default_print_format = 'Standard'; // frappe.get_meta(iterator).default_print_format;
@@ -106,12 +105,10 @@ frappe.ui.form.on('Cambiare Cheque Print Set', {
                         frappe.msgprint(__('Please enable pop-ups'));
                         return;
                     }
-
                 }
             });
 
             dialog.show();
-
 
         }).addClass('btn btn-primary');
     }

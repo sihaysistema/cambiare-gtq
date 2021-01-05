@@ -4,10 +4,11 @@
 
 from __future__ import unicode_literals
 
+import json
+
 import frappe
 from frappe import _, _dict
 from frappe.model.document import Document
-import json
 
 
 class CambiareChequePrintSet(Document):
@@ -51,7 +52,7 @@ def get_data_of_payment_entry(filters):
     data = frappe.db.sql(
         f"""
             SELECT name AS id, 'Payment Entry' AS transaction_id, reference_no AS cheque_no,
-            paid_amount AS amount, party_type, party AS third_party
+            paid_amount AS amount, party_type, party AS third_party, posting_date
             FROM `tabPayment Entry`
             WHERE mode_of_payment='Cheque' AND company='{filters.company}'
             AND posting_date BETWEEN '{filters.start_date}' AND '{filters.end_date}'
@@ -108,6 +109,7 @@ def get_data_of_journal_entry(filters):
     all_data = []
     for data_je in data:
         cheque_no = frappe.db.get_value('Journal Entry', {'name': data_je.get('id')}, 'cheque_no')
+        posting_date = frappe.db.get_value('Journal Entry', {'name': data_je.get('id')}, 'posting_date')
 
         amount = frappe.db.get_value('Journal Entry Account',
                                     {'parent': data_je.get('id'), 'bank_account': filters.source_bank_acc},
@@ -123,7 +125,8 @@ def get_data_of_journal_entry(filters):
             'cheque_no': cheque_no,
             'amount': amount,
             'party_type': party_type.get('party_type', ''),
-            'third_party': party_type.get('party', '')
+            'third_party': party_type.get('party', ''),
+            'posting_date': posting_date
         })
 
     if all_data:
