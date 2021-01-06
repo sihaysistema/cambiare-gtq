@@ -11,6 +11,7 @@
   "column_break_4",
   "transaction_end_date",
   "section_break_6",
+  "generate_print_sets",
   "check_to_print",
   "amended_from"
  ],
@@ -18,8 +19,10 @@
   {
    "fieldname": "company",
    "fieldtype": "Link",
+   "in_list_view": 1,
    "label": "Company",
-   "options": "Company"
+   "options": "Company",
+   "reqd": 1
   },
   {
    "fieldname": "section_break_2",
@@ -28,7 +31,9 @@
   {
    "fieldname": "transaction_start_date",
    "fieldtype": "Date",
-   "label": "Transaction Start Date"
+   "in_list_view": 1,
+   "label": "Transaction Start Date",
+   "reqd": 1
   },
   {
    "fieldname": "column_break_4",
@@ -37,7 +42,9 @@
   {
    "fieldname": "transaction_end_date",
    "fieldtype": "Date",
-   "label": "Transaction End Date"
+   "in_list_view": 1,
+   "label": "Transaction End Date",
+   "reqd": 1
   },
   {
    "fieldname": "section_break_6",
@@ -57,10 +64,15 @@
    "options": "Batch Check Print",
    "print_hide": 1,
    "read_only": 1
+  },
+  {
+   "fieldname": "generate_print_sets",
+   "fieldtype": "Button",
+   "label": "Generate Print Sets"
   }
  ],
  "issingle": 1,
- "modified": "2021-01-06 15:00:55.979239",
+ "modified": "2021-01-06 15:07:52.792890",
  "modified_by": "Administrator",
  "module": "Cambiare GTQ",
  "name": "Batch Check Print",
