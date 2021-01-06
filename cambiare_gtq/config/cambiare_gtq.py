@@ -36,6 +36,12 @@ def get_data():
                     "name": "Cambiare Cheque Print Set",
                     "description": _("Impresora para cheques"),
                     "onboard": 1,
+                },
+                {
+                    "type": "doctype",
+                    "name": "Batch Check Print",
+                    "description": _("Generador lotes para cheques"),
+                    "onboard": 1,
                 }
             ]
         }
