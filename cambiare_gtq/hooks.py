@@ -46,7 +46,8 @@ fixtures = fill_fixtures()
 jenv = {
     "methods": [
         'test1:cambiare_gtq.test1',
-        'currency_in_words:cambiare_gtq.currency_in_words'
+        'currency_in_words:cambiare_gtq.currency_in_words',
+        'currency_in_words_hundred_fractions:cambiare_gtq.currency_in_words_hundred_fractions',
     ]
 }
 

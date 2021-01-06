@@ -1,0 +1,9 @@
+@font-face {
+    font-family: "HundredFractions";
+    src: url("fonts/100fractions.ttf") format("truetype");
+}
+
+.hundredfraction {
+    font-family: "HundredFractions", Fallback, sans-serif;
+    font-size: 1.8em;
+}
