@@ -16,15 +16,17 @@
    "options": "Bank Account"
   },
   {
+   "fetch_from": "bank_account.currency",
    "fieldname": "bank_account_currency",
    "fieldtype": "Link",
    "in_list_view": 1,
    "label": "Bank Account Currency",
-   "options": "Currency"
+   "options": "Currency",
+   "read_only": 1
   }
  ],
  "istable": 1,
- "modified": "2021-01-06 10:25:58.418121",
+ "modified": "2021-01-06 14:55:43.148227",
  "modified_by": "Administrator",
  "module": "Cambiare GTQ",
  "name": "Cheque Print Set Bank Account",
