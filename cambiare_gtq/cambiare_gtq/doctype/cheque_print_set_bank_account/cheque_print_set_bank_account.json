@@ -1,0 +1,37 @@
+{
+ "creation": "2021-01-05 16:16:06.889887",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "bank_account",
+  "bank_account_currency"
+ ],
+ "fields": [
+  {
+   "fieldname": "bank_account",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Bank Account",
+   "options": "Account"
+  },
+  {
+   "fieldname": "bank_account_currency",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Bank Account Currency",
+   "options": "Currency"
+  }
+ ],
+ "istable": 1,
+ "modified": "2021-01-05 16:16:36.369790",
+ "modified_by": "Administrator",
+ "module": "Cambiare GTQ",
+ "name": "Cheque Print Set Bank Account",
+ "owner": "Administrator",
+ "permissions": [],
+ "quick_entry": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

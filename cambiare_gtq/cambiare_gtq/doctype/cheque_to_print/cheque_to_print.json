@@ -1,0 +1,113 @@
+{
+ "creation": "2021-01-04 15:31:52.251218",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "transaction_id",
+  "cheque_no",
+  "amount",
+  "party_type",
+  "third_party",
+  "id",
+  "column_break_7",
+  "remark",
+  "po_box",
+  "city",
+  "pincode",
+  "posting_date"
+ ],
+ "fields": [
+  {
+   "fieldname": "cheque_no",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Cheque No",
+   "read_only": 1
+  },
+  {
+   "fieldname": "amount",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Amount",
+   "options": "currency",
+   "read_only": 1
+  },
+  {
+   "fieldname": "party_type",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Party Type",
+   "options": "DocType",
+   "read_only": 1
+  },
+  {
+   "fieldname": "third_party",
+   "fieldtype": "Dynamic Link",
+   "in_list_view": 1,
+   "label": "Third Party",
+   "options": "party_type",
+   "read_only": 1
+  },
+  {
+   "fieldname": "transaction_id",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Transaction ID",
+   "options": "Payment Entry\nJournal Entry",
+   "read_only": 1,
+   "translatable": 1
+  },
+  {
+   "fieldname": "id",
+   "fieldtype": "Data",
+   "label": "ID",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_7",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "remark",
+   "fieldtype": "Data",
+   "label": "Remark",
+   "read_only": 1
+  },
+  {
+   "fieldname": "po_box",
+   "fieldtype": "Data",
+   "label": "PO Box",
+   "read_only": 1
+  },
+  {
+   "fieldname": "city",
+   "fieldtype": "Data",
+   "label": "City",
+   "read_only": 1
+  },
+  {
+   "fieldname": "pincode",
+   "fieldtype": "Data",
+   "label": "Pincode",
+   "read_only": 1
+  },
+  {
+   "fieldname": "posting_date",
+   "fieldtype": "Date",
+   "label": "Posting Date",
+   "read_only": 1
+  }
+ ],
+ "istable": 1,
+ "modified": "2021-01-05 17:32:49.258068",
+ "modified_by": "Administrator",
+ "module": "Cambiare GTQ",
+ "name": "Cheque To Print",
+ "owner": "Administrator",
+ "permissions": [],
+ "quick_entry": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}
