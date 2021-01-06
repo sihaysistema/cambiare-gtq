@@ -15,9 +15,10 @@ frappe.ui.form.on('Cambiare Cheque Print Set', {
         });
         cur_frm.refresh_field('source_bank_account');
     },
+    onload_post_render: function (frm) {
+        frm.get_field("get_cheque_payments").$input.addClass("btn btn-primary"); //" fa fa-upload");
+    },
     get_cheque_payments: function (frm) {
-        console.log('Hola Mundo');
-
         frappe.call({
             method: 'cambiare_gtq.cambiare_gtq.doctype.cambiare_cheque_print_set.cambiare_cheque_print_set.get_data',
             args: {
