@@ -2,6 +2,16 @@
 // For license information, please see license.txt
 
 frappe.ui.form.on('Batch Check Print', {
+    onload: function (frm) {
+        // Nombre de campo, Nombre tabla hija
+        cur_frm.set_query("bank_account", "check_to_print", function () {
+            return {
+                "filters": {
+                    "company": frm.doc.company
+                }
+            };
+        });
+    },
     onload_post_render: function (frm) {
         frm.get_field("generate_print_sets").$input.addClass("btn btn-primary"); //" fa fa-upload");
     },

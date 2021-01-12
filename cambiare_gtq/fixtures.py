@@ -30,7 +30,11 @@ def fill_fixtures():
             [
                 "source_name", "in", [
                     "Could not create USD to GTQ exchange rate, please try generating GTQ manually",
-                    "Currency Textual Name"
+                    "Currency Textual Name", "Source Bank Account", "Date of creation",
+                    "Configuration Cambiare", "Transaction Start Date", "Transaction End Date",
+                    "Currency Exchange GTQ", "Of Source Bank Account", "Third Party",
+                    "Cambiare Cheque Print Set", "Remark ID", "Bank Account Currency",
+                    "Batch Check Print",
                 ]
             ]
         ]
