@@ -10,6 +10,7 @@
   "party_type",
   "third_party",
   "id",
+  "remark_id",
   "column_break_7",
   "remark",
   "po_box",
@@ -97,10 +98,16 @@
    "fieldtype": "Date",
    "label": "Posting Date",
    "read_only": 1
+  },
+  {
+   "fieldname": "remark_id",
+   "fieldtype": "Data",
+   "label": "Remark ID",
+   "read_only": 1
   }
  ],
  "istable": 1,
- "modified": "2021-01-05 17:32:49.258068",
+ "modified": "2021-01-12 09:38:19.572275",
  "modified_by": "Administrator",
  "module": "Cambiare GTQ",
  "name": "Cheque To Print",

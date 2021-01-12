@@ -47,6 +47,7 @@ frappe.ui.form.on('Cambiare Cheque Print Set', {
                         pincode: element.pincode,
                         posting_date: element.posting_date,
                         id: element.id,
+                        remark_id: element.remark_id,
                     });
                 });
                 frm.refresh_field("cheque_to_print");
