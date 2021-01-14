@@ -9,7 +9,7 @@ import frappe
 from frappe import _
 from numinwords import numinwords
 
-__version__ = '1.3.0'
+__version__ = '1.3.1'
 
 
 @frappe.whitelist()
