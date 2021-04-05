@@ -28,7 +28,7 @@ def fill_fixtures():
     translations = {
         "dt": "Translation", "filters": [
             [
-                "source_name", "in", [
+                "source_text", "in", [
                     "Could not create USD to GTQ exchange rate, please try generating GTQ manually",
                     "Currency Textual Name", "Source Bank Account", "Date of creation",
                     "Configuration Cambiare", "Transaction Start Date", "Transaction End Date",
