@@ -11,7 +11,7 @@
         "parenttype": "",
         "source_text": "Bank Account Currency",
         "status": "Saved",
-        "target_name": "Moneda de cuenta bancaria"
+        "translated_text": "Moneda de cuenta bancaria"
     },
     {
         "contributed_translation_doctype_name": "",
@@ -25,7 +25,7 @@
         "parenttype": "",
         "source_text": "Batch Check Print",
         "status": "Saved",
-        "target_name": "Impresi\u00f3n de cheques por lotes"
+        "translated_text": "Impresi\u00f3n de cheques por lotes"
     },
     {
         "contributed_translation_doctype_name": "",
@@ -39,7 +39,7 @@
         "parenttype": "",
         "source_text": "Cambiare Cheque Print Set",
         "status": "Saved",
-        "target_name": "Set de impresi\u00f3n de cheques Cambiare"
+        "translated_text": "Set de impresi\u00f3n de cheques Cambiare"
     },
     {
         "contributed_translation_doctype_name": "",
@@ -53,7 +53,7 @@
         "parenttype": "",
         "source_text": "Configuration Cambiare",
         "status": "Saved",
-        "target_name": "Configuraci\u00f3n Cambiare"
+        "translated_text": "Configuraci\u00f3n Cambiare"
     },
     {
         "contributed_translation_doctype_name": "",
@@ -67,7 +67,7 @@
         "parenttype": "",
         "source_text": "Could not create USD to GTQ exchange rate, please try generating GTQ manually",
         "status": "Saved",
-        "target_name": "No se pudo crear tipo cambio USD to GTQ, intentar manualmente GTQ"
+        "translated_text": "No se pudo crear tipo cambio USD to GTQ, intentar manualmente GTQ"
     },
     {
         "contributed_translation_doctype_name": "",
@@ -81,7 +81,7 @@
         "parenttype": "",
         "source_text": "Currency Exchange GTQ",
         "status": "Saved",
-        "target_name": "Cambio de divisas GTQ"
+        "translated_text": "Cambio de divisas GTQ"
     },
     {
         "contributed_translation_doctype_name": "",
@@ -95,7 +95,7 @@
         "parenttype": "",
         "source_text": "Currency Textual Name",
         "status": "Saved",
-        "target_name": "Nombre Textual de Moneda"
+        "translated_text": "Nombre Textual de Moneda"
     },
     {
         "contributed_translation_doctype_name": "",
@@ -109,7 +109,7 @@
         "parenttype": "",
         "source_text": "Date of creation",
         "status": "Saved",
-        "target_name": "Fecha de creaci\u00f3n"
+        "translated_text": "Fecha de creaci\u00f3n"
     },
     {
         "contributed_translation_doctype_name": "",
@@ -123,7 +123,7 @@
         "parenttype": "",
         "source_text": "Of Source Bank Account",
         "status": "Saved",
-        "target_name": "De cuenta bancaria origen"
+        "translated_text": "De cuenta bancaria origen"
     },
     {
         "contributed_translation_doctype_name": "",
@@ -137,7 +137,7 @@
         "parenttype": "",
         "source_text": "Remark ID",
         "status": "Saved",
-        "target_name": "Descripci\u00f3n ID"
+        "translated_text": "Descripci\u00f3n ID"
     },
     {
         "contributed_translation_doctype_name": "",
@@ -151,7 +151,7 @@
         "parenttype": "",
         "source_text": "Source Bank Account",
         "status": "Saved",
-        "target_name": "Cuenta bancaria de origen"
+        "translated_text": "Cuenta bancaria de origen"
     },
     {
         "contributed_translation_doctype_name": "",
@@ -165,7 +165,7 @@
         "parenttype": "",
         "source_text": "Third Party",
         "status": "Saved",
-        "target_name": "Terceros"
+        "translated_text": "Terceros"
     },
     {
         "contributed_translation_doctype_name": "",
@@ -179,7 +179,7 @@
         "parenttype": "",
         "source_text": "Transaction End Date",
         "status": "Saved",
-        "target_name": "Fecha de fin de la transacci\u00f3n"
+        "translated_text": "Fecha de fin de la transacci\u00f3n"
     },
     {
         "contributed_translation_doctype_name": "",
@@ -193,6 +193,6 @@
         "parenttype": "",
         "source_text": "Transaction Start Date",
         "status": "Saved",
-        "target_name": "Fecha de inicio de la transacci\u00f3n"
+        "translated_text": "Fecha de inicio de la transacci\u00f3n"
     }
 ]
