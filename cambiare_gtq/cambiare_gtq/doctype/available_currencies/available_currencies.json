@@ -1,12 +1,12 @@
 {
+ "actions": [],
  "creation": "2019-07-28 23:02:57.492873",
  "doctype": "DocType",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
   "moneda",
-  "codigo",
-  "convert"
+  "codigo"
  ],
  "fields": [
   {
@@ -22,17 +22,11 @@
    "fieldtype": "Data",
    "label": "Codigo",
    "read_only": 1
-  },
-  {
-   "default": "0",
-   "fieldname": "convert",
-   "fieldtype": "Check",
-   "in_list_view": 1,
-   "label": "Convert"
   }
  ],
  "istable": 1,
- "modified": "2020-01-29 12:11:47.703255",
+ "links": [],
+ "modified": "2022-01-18 18:25:13.166364",
  "modified_by": "Administrator",
  "module": "Cambiare GTQ",
  "name": "Available Currencies",

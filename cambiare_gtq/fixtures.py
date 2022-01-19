@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-#  Si Hay Sistema and Contributors 2020
+#  Si Hay Sistema and Contributors 2022
+
 from __future__ import unicode_literals
 from . import __version__ as app_version
 
@@ -35,7 +36,7 @@ def fill_fixtures():
                     "Configuration Cambiare", "Transaction Start Date", "Transaction End Date",
                     "Currency Exchange GTQ", "Of Source Bank Account", "Third Party",
                     "Cambiare Cheque Print Set", "Remark ID", "Bank Account Currency",
-                    "Batch Check Print",
+                    "Batch Check Print", "The default exchange rate is USD to GTQ and GTQ to USD. So there is no need to configure it in this section."
                 ]
             ]
         ]
