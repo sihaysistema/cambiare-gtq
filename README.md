@@ -16,7 +16,7 @@ GNU General Public License v3.0
 
 ### How to Install
 
-1. `bench get-app --branch production https://github.com/sihaysistema/cambiare.git`
+1. `bench get-app --branch production https://github.com/sihaysistema/cambiare-gtq.git`
 2. `bench setup requirements`
 3. `bench build --app cambiare_gtq`
 4. `bench restart`
