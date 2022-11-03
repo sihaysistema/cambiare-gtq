@@ -1,91 +1,59 @@
 {
- "cards_label": "Masters",
- "category": "Modules",
  "charts": [],
- "creation": "2021-04-05 15:57:35.622602",
- "developer_mode_only": 0,
- "disable_user_customization": 0,
+ "content": "[{\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Cambiare</span>\",\"col\":12}},{\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Configuracion Cambiare\",\"col\":3}},{\"type\":\"spacer\",\"data\":{\"col\":12}},{\"type\":\"card\",\"data\":{\"card_name\":\"Tipos de cambio registrados\",\"col\":4}}]",
+ "creation": "2022-11-02 20:00:37.916576",
  "docstatus": 0,
  "doctype": "Workspace",
- "extends": "Accounting",
- "extends_another_page": 0,
+ "for_user": "",
  "hide_custom": 0,
- "icon": "integration",
+ "icon": "income",
  "idx": 0,
- "is_default": 0,
- "is_standard": 1,
  "label": "Cambiare",
  "links": [
   {
    "hidden": 0,
-   "icon": "check",
    "is_query_report": 0,
-   "label": "Records",
-   "link_type": "DocType",
+   "label": "Tipos de cambio registrados",
+   "link_count": 1,
    "onboard": 0,
    "type": "Card Break"
   },
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Currency Exchange",
+   "label": "Tipo de Cambio",
+   "link_count": 0,
    "link_to": "Currency Exchange GTQ",
    "link_type": "DocType",
-   "onboard": 1,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Batches",
-   "link_type": "DocType",
    "onboard": 0,
-   "type": "Card Break"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Batch Check Print",
-   "link_to": "Batch Check Print",
-   "link_type": "DocType",
-   "onboard": 1,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "icon": "",
-   "is_query_report": 0,
-   "label": "Print Formats",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Card Break"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Cambiare Cheque Print Set",
-   "link_to": "Cambiare Cheque Print Set",
-   "link_type": "DocType",
-   "onboard": 1,
    "type": "Link"
   }
  ],
- "modified": "2021-04-06 19:40:55.144549",
+ "modified": "2022-11-02 20:04:31.077734",
  "modified_by": "Administrator",
  "module": "Cambiare GTQ",
  "name": "Cambiare",
  "owner": "Administrator",
- "pin_to_bottom": 1,
- "pin_to_top": 0,
+ "parent_page": "Integrations",
+ "public": 1,
+ "quick_lists": [],
+ "roles": [
+  {
+   "role": "Administrator"
+  },
+  {
+   "role": "System Manager"
+  }
+ ],
+ "sequence_id": 33.0,
  "shortcuts": [
   {
-   "color": "#29CD42",
-   "doc_view": "",
-   "icon": "setting",
-   "label": "Configuration Cambiare",
+   "color": "Grey",
+   "doc_view": "List",
+   "label": "Configuracion Cambiare",
    "link_to": "Configuration Cambiare",
    "type": "DocType"
   }
  ],
- "shortcuts_label": ""
+ "title": "Cambiare"
 }
