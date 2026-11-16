@@ -39,7 +39,8 @@ _DOCTYPES = ("Currency Exchange GTQ", "Currency Exchange")
 
 def _throw(exc):
     template = _MESSAGES.get(exc.code, "Could not resolve the exchange rate.")
-    frappe.throw(_(template).format(*exc.args), title=_("Exchange Rate"))
+    details = getattr(exc, "details", ()) or ()
+    frappe.throw(_(template).format(*details), title=_("Exchange Rate"))
 
 
 def _service():
