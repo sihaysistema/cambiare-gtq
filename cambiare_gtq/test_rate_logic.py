@@ -299,6 +299,22 @@ class TestCatalogAndLegacyValues(unittest.TestCase):
             "5 - Swiss Francs - CHF",
         )
 
+    def test_parent_validate_fills_child_code_without_child_validate(self):
+        class Row(object):
+            def __init__(self, currency):
+                self.currency = currency
+                self.code = ""
+
+        row = Row("24 - Euro - EUR")
+        blank = Row("")
+        rate_logic.fill_currency_codes([row, blank, {"currency": "5 - Swiss Francs - CHF"}])
+        self.assertEqual(row.code, "EUR")
+        self.assertEqual(blank.code, "")
+        self.assertEqual(
+            rate_logic.fill_currency_codes([{"moneda": "9 - Pounds Sterling - GBP"}])[0]["code"],
+            "GBP",
+        )
+
     def test_validity_custom_fields_are_not_shipped(self):
         path = os.path.join(
             os.path.dirname(os.path.abspath(__file__)),
@@ -416,6 +432,68 @@ class TestSeriesMath(unittest.TestCase):
         )
         self.assertEqual(len(collected), 2)
         self.assertEqual(pauses, [])
+
+    def test_default_window_reaches_back_to_the_bundle_gap(self):
+        end = datetime.date(2026, 11, 16)
+        start = series_math.default_refresh_start(end, [], "2026-10-23")
+        self.assertEqual(start, datetime.date(2026, 10, 24))
+        stored = [datetime.date(2026, 10, 24) + datetime.timedelta(days=offset) for offset in range(10)]
+        # Oct 24 through Nov 2 are stored, so the window is the last 14 days.
+        self.assertEqual(
+            series_math.default_refresh_start(end, stored, "2026-10-23"),
+            datetime.date(2026, 11, 3),
+        )
+        # A hole on Oct 30 is included even when later gap days exist.
+        hole = [day for day in stored if day != datetime.date(2026, 10, 30)]
+        self.assertEqual(
+            series_math.default_refresh_start(end, hole, "2026-10-23"),
+            datetime.date(2026, 10, 30),
+        )
+
+    def test_bisq_is_requested_once_per_missing_utc_day(self):
+        calls = []
+
+        def fetch(start, end):
+            calls.append((start, end))
+            # Nov 4 has no trades. Nov 5 has two, the second page is short.
+            if start == series_math._utc_midnight(datetime.date(2026, 11, 4)):
+                return []
+            if start == series_math._utc_midnight(datetime.date(2026, 11, 5)):
+                return [
+                    {"trade_date": start * 1000 + 60_000, "price": "10"},
+                    {"trade_date": start * 1000 + 120_000, "price": "30"},
+                ]
+            return []
+
+        pauses = []
+        days = [datetime.date(2026, 11, 4), datetime.date(2026, 11, 5)]
+        collected = series_math.collect_bisq_days(fetch, days, lambda: pauses.append(1))
+        self.assertEqual(len(calls), 2)
+        self.assertEqual(pauses, [1])
+        grouped = series_math.trades_by_utc_day(collected)
+        self.assertNotIn(datetime.date(2026, 11, 4), grouped)
+        self.assertEqual(grouped[datetime.date(2026, 11, 5)], 20)
+        missing = series_math.days_without_precyos(
+            datetime.date(2026, 11, 3),
+            datetime.date(2026, 11, 5),
+            {"2026-11-03"},
+        )
+        self.assertEqual(missing, days)
+
+    def test_bisq_day_pages_when_the_first_page_is_full(self):
+        day = datetime.date(2026, 11, 5)
+        start = series_math._utc_midnight(day)
+        pages = [
+            [{"trade_date": (start + index) * 1000, "price": "1"} for index in range(2000)],
+            [{"trade_date": (start + 2000) * 1000, "price": "5"}],
+        ]
+
+        def fetch(timestamp_from, timestamp_to):
+            return pages.pop(0) if pages else []
+
+        collected = series_math.collect_bisq_days(fetch, [day], lambda: None)
+        self.assertEqual(len(collected), 2001)
+        self.assertEqual(pages, [])
 
 
 if __name__ == "__main__":

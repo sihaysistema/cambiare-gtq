@@ -157,6 +157,27 @@ def currency_options_text():
     return "\n" + "\n".join(lines)
 
 
+def fill_currency_codes(rows):
+    """Copy each row's ISO code out of its currency option.
+
+    Configuration Cambiare calls this from the parent validate. On Frappe v15
+    the child validate does not run on the first parent save, so the code
+    would otherwise stay empty.
+    """
+    for row in rows or []:
+        if isinstance(row, dict):
+            iso = iso_from_option(row.get("currency") or row.get("moneda"))
+            if iso:
+                row["code"] = iso
+        else:
+            iso = iso_from_option(
+                getattr(row, "currency", None) or getattr(row, "moneda", None)
+            )
+            if iso:
+                row.code = iso
+    return rows
+
+
 def iso_from_option(value):
     if not value:
         return ""
