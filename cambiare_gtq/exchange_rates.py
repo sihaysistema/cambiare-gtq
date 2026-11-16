@@ -84,6 +84,8 @@ class FrappeRateBook(object):
             doc.exchange_rate = float(rate)
             doc.for_buying = 1
             doc.for_selling = 1
+            if frappe.get_meta(doctype).has_field("rate_source"):
+                doc.rate_source = "Banguat"
             doc.insert(ignore_permissions=True)
             created += 1
         if not self.doctypes():
@@ -94,18 +96,25 @@ class FrappeRateBook(object):
         """Prefer Currency Exchange GTQ when both doctypes have the same date."""
         by_date = {}
         for doctype in self.doctypes():
+            source_sql = ", rate_source" if frappe.db.has_column(doctype, "rate_source") else ""
             rows = frappe.db.sql(
-                """SELECT `date` AS rate_date, exchange_rate
+                """SELECT `date` AS rate_date, exchange_rate {source_sql}
                 FROM `tab{doctype}`
                 WHERE from_currency = %s AND to_currency = %s
-                ORDER BY `date` ASC, modified DESC""".format(doctype=doctype),
+                ORDER BY `date` ASC, modified DESC""".format(
+                    doctype=doctype, source_sql=source_sql
+                ),
                 (from_currency, to_currency),
                 as_dict=True,
             )
             for row in rows:
                 key = parse_date(row.rate_date)
                 if key not in by_date:
-                    by_date[key] = {"date": key, "rate": float(row.exchange_rate)}
+                    by_date[key] = {
+                        "date": key,
+                        "rate": float(row.exchange_rate),
+                        "rate_source": row.get("rate_source"),
+                    }
         return list(by_date.values())
 
 
