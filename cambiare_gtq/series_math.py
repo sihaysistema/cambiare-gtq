@@ -96,6 +96,92 @@ def asof_rate(dated_rates, day):
     return chosen
 
 
+def rate_timestamp_utc(rate_date, from_currency=None, to_currency=None, published=None):
+    """UTC datetime for a stored rate. Naive, meaning UTC.
+
+    Bitcoin (Precyos or Bisq) is date D at 00:00:00 UTC, the close of the
+    previous UTC day. Banguat is the publication date at 00:00 in
+    America/Guatemala, which is 06:00 UTC, unless the bank sent a time.
+    That time is Guatemala local and is converted to UTC.
+    """
+    if "BTC" in (
+        str(from_currency or "").upper(),
+        str(to_currency or "").upper(),
+    ):
+        day = _as_date(rate_date)
+        return datetime.datetime(day.year, day.month, day.day, 0, 0, 0)
+    return _banguat_timestamp_utc(published if published is not None else rate_date)
+
+
+def iso_utc_z(value):
+    """ISO-8601 UTC timestamp with a Z suffix."""
+    if value is None or value == "":
+        return None
+    if isinstance(value, str):
+        text = value.strip().replace(" ", "T")
+        if text.endswith("Z"):
+            return text
+        if len(text) == 16:
+            text += ":00"
+        return text + "Z"
+    return value.strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def timestamp_for_column(value):
+    """Datetime string MariaDB stores, with no timezone suffix."""
+    if value is None:
+        return None
+    if isinstance(value, str):
+        return value.replace("T", " ").replace("Z", "")[:19]
+    return value.strftime("%Y-%m-%d %H:%M:%S")
+
+
+def _as_date(value):
+    if isinstance(value, datetime.datetime):
+        return value.date()
+    if isinstance(value, datetime.date):
+        return value
+    text = str(value).strip()[:10]
+    for fmt in ("%Y-%m-%d", "%d/%m/%Y", "%d-%m-%Y"):
+        try:
+            return datetime.datetime.strptime(text, fmt).date()
+        except ValueError:
+            continue
+    raise ValueError(value)
+
+
+def _banguat_timestamp_utc(value):
+    """Guatemala local publication moment, returned as a naive UTC datetime."""
+    local = _guatemala_local(value)
+    return local + datetime.timedelta(hours=6)
+
+
+def _guatemala_local(value):
+    if isinstance(value, datetime.datetime):
+        if value.hour or value.minute or value.second:
+            return value.replace(tzinfo=None, microsecond=0)
+        return datetime.datetime(value.year, value.month, value.day)
+    if isinstance(value, datetime.date):
+        return datetime.datetime(value.year, value.month, value.day)
+    text = str(value).strip()
+    for fmt in (
+        "%Y-%m-%d %H:%M:%S",
+        "%Y-%m-%dT%H:%M:%S",
+        "%d/%m/%Y %H:%M:%S",
+        "%d/%m/%Y %H:%M",
+        "%Y-%m-%d %H:%M",
+    ):
+        try:
+            parsed = datetime.datetime.strptime(text[:19], fmt)
+        except ValueError:
+            continue
+        if parsed.hour or parsed.minute or parsed.second:
+            return parsed
+        return datetime.datetime(parsed.year, parsed.month, parsed.day)
+    day = _as_date(text)
+    return datetime.datetime(day.year, day.month, day.day)
+
+
 def btc_gtq(btc_usd, usd_gtq):
     """1 BTC in quetzales = BTC/USD times the as-of Banguat venta."""
     return Decimal(str(btc_usd)) * Decimal(str(usd_gtq))

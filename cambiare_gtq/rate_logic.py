@@ -30,6 +30,7 @@ Both directions are stored. ``USD -> GTQ`` of 7.64 means 1 USD = 7.64 GTQ.
 from __future__ import unicode_literals
 
 import datetime
+import os
 import re
 
 WSDL_URL = "https://www.banguat.gob.gt/variables/ws/TipoCambio.asmx?WSDL"
@@ -337,10 +338,17 @@ def resolve_closing(rows, requested):
         row_date = parse_date(row["date"])
         rate = float(row["rate"])
         provider = row.get("rate_source") if isinstance(row, dict) else None
+        stamp = row.get("rate_timestamp_utc") if isinstance(row, dict) else None
+        picked = {
+            "rate": rate,
+            "rate_date": row_date,
+            "rate_source": provider,
+            "rate_timestamp_utc": stamp,
+        }
         if row_date == requested:
-            exact = {"rate": rate, "rate_date": row_date, "source": "exact", "rate_source": provider}
+            exact = dict(picked, source="exact")
         elif row_date < requested and (prior is None or row_date > prior["rate_date"]):
-            prior = {"rate": rate, "rate_date": row_date, "source": "fallback", "rate_source": provider}
+            prior = dict(picked, source="fallback")
     return exact or prior
 
 
@@ -390,6 +398,7 @@ def parse_var_rows(payload):
         rows.append({
             "variable": _get(item, "moneda"),
             "date": parse_date(fecha),
+            "published": fecha,
             "rate": rate,
         })
     return rows
@@ -445,7 +454,7 @@ class MemoryBook(object):
     def __init__(self):
         self.rows = []
 
-    def add(self, rate_date, from_currency, to_currency, rate):
+    def add(self, rate_date, from_currency, to_currency, rate, published=None):
         rate_date = parse_date(rate_date)
         for row in self.rows:
             if (
@@ -483,15 +492,19 @@ class ExchangeService(object):
         targets = target_currencies(currency, configured)
         usd_rows = self.client.usd_range(start, end)
         usd_by_date = {}
+        usd_published = {}
         for row in usd_rows:
             if start <= row["date"] <= end:
                 usd_by_date[row["date"]] = row["rate"]
+                usd_published[row["date"]] = row.get("published")
 
         created = 0
         skipped = 0
         if "USD" in targets:
             for rate_date, usd_to_gtq in sorted(usd_by_date.items()):
-                made, existed = self._store_both(rate_date, "USD", "GTQ", usd_to_gtq)
+                made, existed = self._store_both(
+                    rate_date, "USD", "GTQ", usd_to_gtq, usd_published.get(rate_date)
+                )
                 created += made
                 skipped += existed
 
@@ -507,7 +520,9 @@ class ExchangeService(object):
                 if not usd_to_gtq:
                     continue
                 gtq_per_unit = quetzales_per_unit(usd_to_gtq, quote["rate"])
-                made, existed = self._store_both(quote["date"], iso, "GTQ", gtq_per_unit)
+                made, existed = self._store_both(
+                    quote["date"], iso, "GTQ", gtq_per_unit, quote.get("published")
+                )
                 created += made
                 skipped += existed
 
@@ -519,10 +534,12 @@ class ExchangeService(object):
             "currencies": targets,
         }
 
-    def _store_both(self, rate_date, from_currency, to_currency, rate):
-        created, skipped = self.book.add(rate_date, from_currency, to_currency, rate)
+    def _store_both(self, rate_date, from_currency, to_currency, rate, published=None):
+        created, skipped = self.book.add(
+            rate_date, from_currency, to_currency, rate, published=published
+        )
         inv_created, inv_skipped = self.book.add(
-            rate_date, to_currency, from_currency, reciprocal(rate)
+            rate_date, to_currency, from_currency, reciprocal(rate), published=published
         )
         return created + inv_created, skipped + inv_skipped
 
@@ -539,7 +556,7 @@ class ExchangeService(object):
         if direct and direct["source"] == "exact":
             return self._result(
                 direct["rate"], direct["rate_date"], from_currency, to_currency, "exact",
-                direct.get("rate_source"),
+                direct.get("rate_source"), direct.get("rate_timestamp_utc"),
             )
 
         fetched = False
@@ -551,7 +568,7 @@ class ExchangeService(object):
             if direct and direct["source"] == "exact":
                 return self._result(
                     direct["rate"], direct["rate_date"], from_currency, to_currency, "banguat",
-                    direct.get("rate_source") or "Banguat",
+                    direct.get("rate_source") or "Banguat", direct.get("rate_timestamp_utc"),
                 )
 
         inverse = resolve_closing(self.book.find(to_currency, from_currency), requested)
@@ -559,17 +576,17 @@ class ExchangeService(object):
             source = "banguat" if fetched else "inverse"
             return self._result(
                 reciprocal(inverse["rate"]), inverse["rate_date"], from_currency, to_currency, source,
-                inverse.get("rate_source"),
+                inverse.get("rate_source"), inverse.get("rate_timestamp_utc"),
             )
         if direct:
             return self._result(
                 direct["rate"], direct["rate_date"], from_currency, to_currency, "fallback",
-                direct.get("rate_source"),
+                direct.get("rate_source"), direct.get("rate_timestamp_utc"),
             )
         if inverse:
             return self._result(
                 reciprocal(inverse["rate"]), inverse["rate_date"], from_currency, to_currency, "fallback",
-                inverse.get("rate_source"),
+                inverse.get("rate_source"), inverse.get("rate_timestamp_utc"),
             )
         raise RateError("not_found", (from_currency, to_currency, iso_date(requested)))
 
@@ -607,24 +624,29 @@ class ExchangeService(object):
                 if exc.code == "not_found":
                     continue
                 raise
-            used.append((day, closing["rate"]))
+            used.append(closing)
         if not used:
             raise RateError(
                 "not_found",
                 (from_currency, to_currency, iso_date(start) + " - " + iso_date(end)),
             )
         return {
-            "average": average_rates([rate for _day, rate in used]),
+            "average": average_rates([row["rate"] for row in used]),
             "days": len(used),
             "from_date": iso_date(start),
             "to_date": iso_date(end),
             "from_currency": from_currency,
             "to_currency": to_currency,
-            "covered_from": iso_date(used[0][0]),
-            "covered_to": iso_date(used[-1][0]),
+            "covered_from": used[0]["rate_date"],
+            "covered_to": used[-1]["rate_date"],
+            "rate_timestamp_utc_from": used[0].get("rate_timestamp_utc"),
+            "rate_timestamp_utc_to": used[-1].get("rate_timestamp_utc"),
         }
 
-    def _result(self, rate, rate_date, from_currency, to_currency, source, rate_source=None):
+    def _result(self, rate, rate_date, from_currency, to_currency, source, rate_source=None, rate_timestamp_utc=None):
+        iso_utc_z, stamp_for = _timestamp_helpers()
+        if rate_timestamp_utc is None:
+            rate_timestamp_utc = stamp_for(rate_date, from_currency, to_currency)
         result = {
             "rate": float(rate),
             "rate_date": iso_date(rate_date),
@@ -632,10 +654,25 @@ class ExchangeService(object):
             "to_currency": to_currency,
             "source": source,
             "meaning": "1 {0} = {1} {2}".format(from_currency, float(rate), to_currency),
+            "rate_timestamp_utc": iso_utc_z(rate_timestamp_utc),
         }
         if rate_source:
             result["rate_source"] = rate_source
         return result
+
+
+def _timestamp_helpers():
+    """Load the UTC stamp helpers without requiring Frappe in unit tests."""
+    try:
+        from cambiare_gtq.series_math import iso_utc_z, rate_timestamp_utc
+        return iso_utc_z, rate_timestamp_utc
+    except Exception:
+        import importlib.util
+        path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "series_math.py")
+        spec = importlib.util.spec_from_file_location("cambiare_series_math_for_stamps", path)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        return module.iso_utc_z, module.rate_timestamp_utc
 
 
 def _involves_gtq(from_currency, to_currency):
