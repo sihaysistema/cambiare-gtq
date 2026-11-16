@@ -35,6 +35,8 @@ from cambiare_gtq.series_math import (
     days_without_precyos,
     decimal_string,
     default_refresh_start,
+    rate_timestamp_utc,
+    timestamp_for_column,
     iter_days,
     mapped_rate,
     precyos_usd_points,
@@ -198,12 +200,18 @@ def _replace_bisq_with_precyos(doctype, day, btc_usd, usd_gtq):
         pairs[("GTQ", "BTC")] = quantize_rate(Decimal(1) / gtq)
     updated = 0
     for (fr, to), rate in pairs.items():
+        assignments = "exchange_rate = %s, rate_source = %s"
+        values = [decimal_string(rate), SOURCE_PRECYOS]
+        if doctype == "Currency Exchange GTQ" and frappe.db.has_column(doctype, "rate_timestamp_utc"):
+            assignments += ", rate_timestamp_utc = %s"
+            values.append(timestamp_for_column(rate_timestamp_utc(day, fr, to)))
+        values.extend([day.isoformat(), fr, to, SOURCE_BISQ])
         frappe.db.sql(
             """UPDATE `tab{doctype}`
-            SET exchange_rate = %s, rate_source = %s
+            SET {assignments}
             WHERE `date` = %s AND from_currency = %s AND to_currency = %s
-            AND rate_source = %s""".format(doctype=doctype),
-            (decimal_string(rate), SOURCE_PRECYOS, day.isoformat(), fr, to, SOURCE_BISQ),
+            AND rate_source = %s""".format(doctype=doctype, assignments=assignments),
+            tuple(values),
         )
         updated += 1
     return updated
@@ -227,10 +235,22 @@ def _shift_bisq_date(doctype, day, new_day):
             frappe.db.sql("DELETE FROM `tab{0}` WHERE name = %s".format(doctype), (name,))
             removed += 1
             continue
-        frappe.db.sql(
-            "UPDATE `tab{0}` SET `date` = %s WHERE name = %s".format(doctype),
-            (new_day.isoformat(), name),
-        )
+        if doctype == "Currency Exchange GTQ" and frappe.db.has_column(doctype, "rate_timestamp_utc"):
+            frappe.db.sql(
+                """UPDATE `tab{0}`
+                SET `date` = %s, rate_timestamp_utc = %s
+                WHERE name = %s""".format(doctype),
+                (
+                    new_day.isoformat(),
+                    timestamp_for_column(rate_timestamp_utc(new_day, fr, to)),
+                    name,
+                ),
+            )
+        else:
+            frappe.db.sql(
+                "UPDATE `tab{0}` SET `date` = %s WHERE name = %s".format(doctype),
+                (new_day.isoformat(), name),
+            )
         moved += 1
     return moved, removed
 
@@ -367,6 +387,8 @@ def _store_rate(day, fr, to, rate, source):
         doc.for_selling = 1
         if _has_source(doctype):
             doc.rate_source = source
+        if doctype == "Currency Exchange GTQ" and frappe.db.has_column(doctype, "rate_timestamp_utc"):
+            doc.rate_timestamp_utc = timestamp_for_column(rate_timestamp_utc(day, fr, to))
         doc.insert(ignore_permissions=True, ignore_links=doctype == "Currency Exchange GTQ")
         outcome = "created"
     return outcome
