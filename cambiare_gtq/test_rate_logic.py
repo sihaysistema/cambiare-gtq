@@ -242,6 +242,63 @@ class TestCatalogAndLegacyValues(unittest.TestCase):
         self.assertEqual(rate_logic.iso_from_option("18 - Mexican Pesos - MXN"), "MXN")
         self.assertEqual(rate_logic.variable_from_option("24 - Euro - EUR"), 24)
 
+    def test_catalog_matches_banguat_variables(self):
+        expected = {
+            2: "USD", 3: "JPY", 4: "BEF", 5: "CHF", 6: "FRF", 7: "CAD", 8: "ITL",
+            9: "GBP", 11: "DEM", 12: "ESP", 13: "ATS", 14: "NLG", 15: "SEK",
+            16: "CRC", 17: "SVC", 18: "MXN", 19: "HNL", 21: "NIO", 22: "VEB", 23: "DKK",
+            24: "EUR", 25: "NOK", 26: "XDR", 27: "PTE", 28: "IDB", 29: "ARS", 30: "BRL",
+            31: "KRW", 32: "HKD", 33: "TWD", 34: "CNY", 35: "PKR", 36: "INR", 37: "VEF",
+            38: "COP", 39: "DOP", 40: "MYR", 41: "VES", 42: "PLN",
+        }
+        self.assertEqual(rate_logic.VARIABLE_TO_ISO, expected)
+        self.assertNotIn(1, rate_logic.VARIABLE_TO_ISO)
+        options = rate_logic.currency_options_text()
+        self.assertIn("\n5 - Swiss Francs - CHF\n", options)
+        self.assertIn("\n6 - French Francs - FRF\n", options)
+        self.assertIn("\n9 - Pounds Sterling - GBP\n", options)
+        self.assertNotIn("KPW", options)
+        self.assertNotIn("BOB", options)
+        self.assertNotIn("BOV", options)
+
+    def test_saved_row_keeps_the_iso_code_and_repairs_the_variable(self):
+        self.assertEqual(
+            rate_logic.canonical_saved_currency("6 - French Francs - CHF"),
+            ("5 - Swiss Francs - CHF", "CHF"),
+        )
+        self.assertEqual(
+            rate_logic.canonical_saved_currency("6 - Francos Franceses - CHF"),
+            ("5 - Swiss Francs - CHF", "CHF"),
+        )
+        self.assertEqual(
+            rate_logic.canonical_saved_currency("8 - Italian Lira - GBP"),
+            ("9 - Pounds Sterling - GBP", "GBP"),
+        )
+        self.assertEqual(
+            rate_logic.canonical_saved_currency("22 - Venezuelan Bolivares - VEF"),
+            ("37 - Bolivar Fuerte - VEF", "VEF"),
+        )
+        self.assertEqual(
+            rate_logic.canonical_saved_currency("31 - Korean Won - KPW"),
+            ("31 - Korean Won - KRW", "KRW"),
+        )
+        self.assertEqual(
+            rate_logic.canonical_saved_currency("37 - Bolivar Fuerte - BOB"),
+            ("37 - Bolivar Fuerte - VEF", "VEF"),
+        )
+        self.assertEqual(
+            rate_logic.canonical_saved_currency("41 - Sovereign Bolivar - BOV"),
+            ("41 - Sovereign Bolivar - VES", "VES"),
+        )
+        self.assertEqual(
+            rate_logic.canonical_saved_currency("18 - Mexican Pesos - MXN", "MXN"),
+            ("18 - Mexican Pesos - MXN", "MXN"),
+        )
+        self.assertEqual(
+            rate_logic.LEGACY_CURRENCY_OPTIONS["6 - Francos Franceses - CHF"],
+            "5 - Swiss Francs - CHF",
+        )
+
     def test_validity_custom_fields_are_not_shipped(self):
         path = os.path.join(
             os.path.dirname(os.path.abspath(__file__)),
@@ -260,6 +317,10 @@ class TestCatalogAndLegacyValues(unittest.TestCase):
             patch_text = handle.read()
         self.assertIn(
             "cambiare_gtq.patches.v1_5.remove_currency_exchange_validity_fields",
+            patch_text,
+        )
+        self.assertIn(
+            "cambiare_gtq.patches.v1_5.remap_banguat_currencies",
             patch_text,
         )
 

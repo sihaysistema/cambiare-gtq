@@ -6,7 +6,7 @@ from __future__ import unicode_literals
 
 import frappe
 
-from cambiare_gtq.historical import ensure_btc_currency, load_historical_rates
+from cambiare_gtq.historical import ensure_btc_currency, load_historical_rates, remap_saved_currencies
 
 
 def after_install():
@@ -25,5 +25,6 @@ def after_sync():
 def after_migrate():
     """Upgrade path: the one-time patch may have run before the source column existed."""
     ensure_btc_currency()
+    remap_saved_currencies()
     load_historical_rates()
     frappe.db.commit()

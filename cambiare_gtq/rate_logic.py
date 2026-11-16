@@ -36,42 +36,56 @@ WSDL_URL = "https://www.banguat.gob.gt/variables/ws/TipoCambio.asmx?WSDL"
 USD_VARIABLE = 2
 
 # (banguat variable, English name, ISO code)
-# Variable 6 is labeled "Francos Franceses" by Banguat while this app has
-# always stored it as CHF. Variable 8 is "Liras Italianas" stored as GBP.
-# The numbers and ISO codes are unchanged; only the description is English.
+# Variable 1 is the quetzal itself and is not a foreign series.
+# This is the only variable-to-ISO table. The select options are built from it.
+# ISO codes follow the bank's own names: 5 CHF, 6 FRF, 8 ITL, 9 GBP,
+# 22 VEB, 31 KRW, 37 VEF, 41 VES. 28 IDB is the IDB unit of account,
+# which is not an ISO 4217 code; Banguat publishes it as variable 28.
 CURRENCIES = (
+    (2, "US Dollars", "USD"),
     (3, "Japanese Yen", "JPY"),
-    (6, "French Francs", "CHF"),
+    (4, "Belgian Francs", "BEF"),
+    (5, "Swiss Francs", "CHF"),
+    (6, "French Francs", "FRF"),
     (7, "Canadian Dollars", "CAD"),
-    (8, "Italian Lira", "GBP"),
+    (8, "Italian Lira", "ITL"),
+    (9, "Pounds Sterling", "GBP"),
+    (11, "German Marks", "DEM"),
+    (12, "Spanish Pesetas", "ESP"),
+    (13, "Austrian Schillings", "ATS"),
+    (14, "Dutch Guilders", "NLG"),
     (15, "Swedish Krona", "SEK"),
     (16, "Costa Rican Colones", "CRC"),
     (17, "Salvadoran Colones", "SVC"),
     (18, "Mexican Pesos", "MXN"),
     (19, "Honduran Lempiras", "HNL"),
     (21, "Nicaraguan Cordobas", "NIO"),
-    (22, "Venezuelan Bolivares", "VEF"),
+    (22, "Venezuelan Bolivares", "VEB"),
     (23, "Danish Krone", "DKK"),
     (24, "Euro", "EUR"),
     (25, "Norwegian Krone", "NOK"),
+    (26, "Special Drawing Rights", "XDR"),
+    (27, "Portuguese Escudos", "PTE"),
+    (28, "IDB Unit of Account", "IDB"),
     (29, "Argentine Peso", "ARS"),
     (30, "Brazilian Real", "BRL"),
-    (31, "Korean Won", "KPW"),
+    (31, "Korean Won", "KRW"),
     (32, "Hong Kong Dollar", "HKD"),
     (33, "Taiwan Dollar", "TWD"),
     (34, "Chinese Yuan", "CNY"),
     (35, "Pakistani Rupee", "PKR"),
     (36, "Indian Rupee", "INR"),
-    (37, "Bolivar Fuerte", "BOB"),
+    (37, "Bolivar Fuerte", "VEF"),
     (38, "Colombian Peso", "COP"),
     (39, "Dominican Peso", "DOP"),
     (40, "Malaysian Ringgit", "MYR"),
-    (41, "Sovereign Bolivar", "BOV"),
+    (41, "Sovereign Bolivar", "VES"),
     (42, "Zloty", "PLN"),
 )
 
 ISO_TO_VARIABLE = {iso: variable for variable, _name, iso in CURRENCIES}
 VARIABLE_TO_ISO = {variable: iso for variable, _name, iso in CURRENCIES}
+VARIABLE_TO_NAME = {variable: name for variable, name, _iso in CURRENCIES}
 
 LEGACY_FREQUENCY = {
     "Cada Hora": "Hourly",
@@ -81,36 +95,45 @@ LEGACY_FREQUENCY = {
     "Cada Mes": "Monthly",
 }
 
-LEGACY_CURRENCY_OPTIONS = {
-    "3 - Yenes Japoneses - JPY": "3 - Japanese Yen - JPY",
-    "6 - Francos Franceses - CHF": "6 - French Francs - CHF",
-    "7 - Dólares Canadienses - CAD": "7 - Canadian Dollars - CAD",
-    "8 - Liras Italianas - GBP": "8 - Italian Lira - GBP",
-    "15 - Coronas Suecas - SEK": "15 - Swedish Krona - SEK",
-    "16 - Colones Costarricenses - CRC": "16 - Costa Rican Colones - CRC",
-    "17 - Colones Salvadoreños - SVC": "17 - Salvadoran Colones - SVC",
-    "18 - Pesos Mexicanos - MXN": "18 - Mexican Pesos - MXN",
-    "19 - Lempiras Hondureños - HNL": "19 - Honduran Lempiras - HNL",
-    "21 - Córdobas Nicaragüenses - NIO": "21 - Nicaraguan Cordobas - NIO",
-    "22 - Bolivares Venezolanos - VEF": "22 - Venezuelan Bolivares - VEF",
-    "23 - Corona Danesa - DKK": "23 - Danish Krone - DKK",
-    "24 - Euro - EUR": "24 - Euro - EUR",
-    "25 - Corona Noruega - NOK": "25 - Norwegian Krone - NOK",
-    "29 - Peso Argentina - ARS": "29 - Argentine Peso - ARS",
-    "30 - Real Brasileño - BRL": "30 - Brazilian Real - BRL",
-    "31 - Won Coreano - KPW": "31 - Korean Won - KPW",
-    "32 - Dólar Hong Kong - HKD": "32 - Hong Kong Dollar - HKD",
-    "33 - Dólar Taiwán - TWD": "33 - Taiwan Dollar - TWD",
-    "34 - Yuan China - CNY": "34 - Chinese Yuan - CNY",
-    "35 - Rupia Pakistán - PKR": "35 - Pakistani Rupee - PKR",
-    "36 - Rupee India - INR": "36 - Indian Rupee - INR",
-    "37 - Bolivar Fuerte - BOB": "37 - Bolivar Fuerte - BOB",
-    "38 - Peso Colombiano - COP": "38 - Colombian Peso - COP",
-    "39 - Peso Dominicano - DOP": "39 - Dominican Peso - DOP",
-    "40 - Ringgit Malasia - MYR": "40 - Malaysian Ringgit - MYR",
-    "41 - Bolívar Soberano - BOV": "41 - Sovereign Bolivar - BOV",
-    "42 - Zloty - PLN": "42 - Zloty - PLN",
-}
+# Older selects, in Spanish and in the previous English list. The ISO code
+# on the right is what the user chose. canonical_saved_currency re-points it.
+_LEGACY_OPTION_TEXT = (
+    "3 - Yenes Japoneses - JPY",
+    "6 - Francos Franceses - CHF",
+    "6 - French Francs - CHF",
+    "7 - Dólares Canadienses - CAD",
+    "8 - Liras Italianas - GBP",
+    "8 - Italian Lira - GBP",
+    "15 - Coronas Suecas - SEK",
+    "16 - Colones Costarricenses - CRC",
+    "17 - Colones Salvadoreños - SVC",
+    "18 - Pesos Mexicanos - MXN",
+    "19 - Lempiras Hondureños - HNL",
+    "21 - Córdobas Nicaragüenses - NIO",
+    "22 - Bolivares Venezolanos - VEF",
+    "22 - Bolívares Venezolanos - VEF",
+    "22 - Venezuelan Bolivares - VEF",
+    "23 - Corona Danesa - DKK",
+    "24 - Euro - EUR",
+    "25 - Corona Noruega - NOK",
+    "29 - Peso Argentina - ARS",
+    "30 - Real Brasileño - BRL",
+    "31 - Won Coreano - KPW",
+    "31 - Korean Won - KPW",
+    "32 - Dólar Hong Kong - HKD",
+    "33 - Dólar Taiwán - TWD",
+    "34 - Yuan China - CNY",
+    "35 - Rupia Pakistán - PKR",
+    "36 - Rupee India - INR",
+    "37 - Bolivar Fuerte - BOB",
+    "37 - Bolívar Fuerte - BOB",
+    "38 - Peso Colombiano - COP",
+    "39 - Peso Dominicano - DOP",
+    "40 - Ringgit Malasia - MYR",
+    "41 - Bolívar Soberano - BOV",
+    "41 - Sovereign Bolivar - BOV",
+    "42 - Zloty - PLN",
+)
 
 _OPTION_RE = re.compile(r"^\s*(\d+)\s*-\s*(.*?)\s*-\s*([A-Za-z]{3})\s*$")
 _DATE_FORMATS = ("%Y-%m-%d", "%d/%m/%Y", "%d-%m-%Y")
@@ -150,6 +173,32 @@ def variable_from_option(value):
     if not match:
         return None
     return int(match.group(1))
+
+
+def canonical_saved_currency(value, code=None):
+    """Select label and ISO code for the currency a saved row meant.
+
+    The ISO code wins when the catalog has it, so a row labeled
+    ``6 - French Francs - CHF`` moves to variable 5 (Swiss francs).
+    An ISO the bank does not publish (KPW, BOB, BOV) keeps the variable
+    number and takes that variable's real code.
+    """
+    iso = (code or "").strip().upper()
+    if iso not in ISO_TO_VARIABLE:
+        iso = iso_from_option(value)
+    if iso in ISO_TO_VARIABLE:
+        variable = ISO_TO_VARIABLE[iso]
+        return option_label(variable, VARIABLE_TO_NAME[variable], iso), iso
+    variable = variable_from_option(value)
+    if variable in VARIABLE_TO_ISO:
+        real = VARIABLE_TO_ISO[variable]
+        return option_label(variable, VARIABLE_TO_NAME[variable], real), real
+    return value, (code or iso or "")
+
+
+LEGACY_CURRENCY_OPTIONS = {
+    text: canonical_saved_currency(text)[0] for text in _LEGACY_OPTION_TEXT
+}
 
 
 def parse_date(value):
