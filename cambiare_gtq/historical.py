@@ -87,6 +87,9 @@ def reload_historical_rates():
 
 def load_historical_rates(force=False):
     if not force and frappe.db.get_default(MARKER) == BUNDLE_VERSION and _history_is_complete():
+        stamped = stamp_owned_sources()
+        if stamped:
+            return {"status": "sources_stamped", "stamped": stamped, "version": BUNDLE_VERSION}
         return {"status": "already_loaded", "version": BUNDLE_VERSION}
     if not os.path.exists(bundle_path()):
         return {"status": "missing_bundle"}
@@ -120,6 +123,7 @@ def load_historical_rates(force=False):
             standard_created += std
     for doctype, rows in pending.items():
         _flush(doctype, rows)
+    stamped = stamp_owned_sources(records)
     if _history_is_complete():
         frappe.db.set_default(MARKER, BUNDLE_VERSION)
     return {
@@ -128,7 +132,62 @@ def load_historical_rates(force=False):
         "skipped": skipped,
         "standard_created": standard_created,
         "bundled_rows": len(records),
+        "stamped": stamped,
     }
+
+
+def stamp_owned_sources(records=None):
+    """Fill rate_source on rows this loader named, once the column exists.
+
+    The upgrade patch inserts before fixtures add the column on Currency
+    Exchange, so those rows land with an empty source. Rows with any other
+    name are left alone, including hand-edited and earlier backfill rows.
+    """
+    targets = [doctype for doctype in _DOCTYPES if _needs_stamp(doctype)]
+    if not targets:
+        return 0
+    records = records if records is not None else read_bundle()
+    by_source = {}
+    for record in records:
+        source = record["source"] or SOURCE_BANGUAT
+        day = record["date"].replace("-", "")
+        for fr, to in (
+            (record["from_currency"], record["to_currency"]),
+            (record["to_currency"], record["from_currency"]),
+        ):
+            for doctype in targets:
+                prefix = "CEGTQ" if doctype == "Currency Exchange GTQ" else "CEX"
+                by_source.setdefault((doctype, source), []).append(
+                    "{0}-{1}-{2}-{3}".format(prefix, fr, to, day)
+                )
+    stamped = 0
+    for (doctype, source), names in by_source.items():
+        for start in range(0, len(names), 400):
+            chunk = names[start:start + 400]
+            frappe.db.sql(
+                """UPDATE `tab{doctype}`
+                SET rate_source = %s
+                WHERE name IN ({names}) AND IFNULL(rate_source, '') = ''""".format(
+                    doctype=doctype,
+                    names=",".join(["%s"] * len(chunk)),
+                ),
+                tuple([source] + chunk),
+            )
+            stamped += len(chunk)
+    return stamped
+
+
+def _needs_stamp(doctype):
+    if not _has_source(doctype):
+        return False
+    prefix = "CEGTQ" if doctype == "Currency Exchange GTQ" else "CEX"
+    found = frappe.db.sql(
+        "SELECT name FROM `tab{0}` WHERE name LIKE %s AND IFNULL(rate_source, '') = '' LIMIT 1".format(
+            doctype
+        ),
+        (prefix + "-%",),
+    )
+    return bool(found)
 
 
 def _queue_pair(pending, present, currencies, stamp, day, fr, to, rate, source):
