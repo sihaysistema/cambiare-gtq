@@ -228,7 +228,6 @@ def _store_rate(day, fr, to, rate, source):
         doc.for_selling = 1
         if _has_source(doctype):
             doc.rate_source = source
-        doc.flags.name_set = True
         doc.insert(ignore_permissions=True, ignore_links=doctype == "Currency Exchange GTQ")
         outcome = "created"
     return outcome
