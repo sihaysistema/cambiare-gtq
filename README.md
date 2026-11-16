@@ -4,7 +4,7 @@ Exchange rates for ERPNext from the Banco de Guatemala (Banguat) SOAP service.
 
 https://www.banguat.gob.gt/variables/ws/TipoCambio.asmx
 
-The app stores each quote in **Currency Exchange GTQ** and in ERPNext **Currency Exchange**, in both directions.
+The app stores each quote in **Currency Exchange GTQ** and in ERPNext **Currency Exchange**, in both directions. The rate date is the standard `date` field on those documents. The unused `valid_from` and `valid_to` custom fields are not shipped, and a patch removes them from sites that already have them.
 
 ## Supported versions
 
