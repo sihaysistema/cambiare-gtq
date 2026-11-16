@@ -90,7 +90,6 @@ def reload_historical_rates():
 
 
 def load_historical_rates(force=False):
-    _forget_table_cache()
     if not force and frappe.db.get_default(MARKER) == BUNDLE_VERSION and _history_is_complete():
         stamped = stamp_owned_sources()
         banguat = stamp_matching_banguat()
@@ -105,11 +104,12 @@ def load_historical_rates(force=False):
     if not os.path.exists(bundle_path()):
         return {"status": "missing_bundle"}
     _ensure_gtq_source_column()
+    tables = {doctype for doctype in _DOCTYPES if _table_exists(doctype)}
     records = read_bundle()
     created = 0
     skipped = 0
     standard_created = 0
-    present = _existing_pairs()
+    present = _existing_pairs(tables)
     currencies = _currency_names()
     stamp = now_datetime()
     pending = {doctype: [] for doctype in _DOCTYPES}
@@ -127,7 +127,7 @@ def load_historical_rates(force=False):
         )
         for day, fr, to, value, source in (pair, inverse):
             made, skipped_one, std = _queue_pair(
-                pending, present, currencies, stamp, day, fr, to, value, source
+                pending, present, currencies, stamp, day, fr, to, value, source, tables
             )
             created += made
             skipped += skipped_one
@@ -312,12 +312,12 @@ def _needs_stamp(doctype):
     return bool(found)
 
 
-def _queue_pair(pending, present, currencies, stamp, day, fr, to, rate, source):
+def _queue_pair(pending, present, currencies, stamp, day, fr, to, rate, source, tables):
     created = 0
     skipped = 0
     standard = 0
     for doctype, prefix in (("Currency Exchange GTQ", "CEGTQ"), ("Currency Exchange", "CEX")):
-        if not _table_exists(doctype):
+        if doctype not in tables:
             continue
         if doctype == "Currency Exchange" and (fr not in currencies or to not in currencies):
             continue
@@ -367,10 +367,10 @@ def _flush(doctype, rows):
         )
 
 
-def _existing_pairs():
+def _existing_pairs(tables):
     found = set()
     for doctype in _DOCTYPES:
-        if not frappe.db.table_exists(doctype):
+        if doctype not in tables:
             continue
         rows = frappe.db.sql(
             "SELECT `date`, from_currency, to_currency FROM `tab{0}`".format(doctype)
@@ -387,7 +387,7 @@ def _currency_names():
 
 
 def _has_source(doctype):
-    return frappe.db.table_exists(doctype) and frappe.db.has_column(doctype, "rate_source")
+    return _table_exists(doctype) and frappe.db.has_column(doctype, "rate_source")
 
 
 def _has_field(doctype, fieldname):
@@ -421,7 +421,7 @@ def _forget(doctype):
 
 
 def _forget_table_cache():
-    """The table list is cached at the start of install-app, before this doctype exists."""
+    """Drop the cached table list. install-app fills it before this doctype exists."""
     cache = frappe.cache()
     for name in ("delete_value", "delete_key"):
         method = getattr(cache, name, None)
@@ -431,20 +431,13 @@ def _forget_table_cache():
             method("db_tables")
         except Exception:
             pass
-    getter = getattr(frappe.db, "get_tables", None)
-    if getter is None:
-        return
-    try:
-        getter(cached=False)
-    except TypeError:
-        pass
 
 
 def _table_exists(doctype):
-    try:
-        return frappe.db.table_exists(doctype, cached=False)
-    except TypeError:
-        return frappe.db.table_exists(doctype)
+    """SHOW TABLES sees a table created earlier in this request. The cache does not."""
+    _forget_table_cache()
+    rows = frappe.db.sql("SHOW TABLES LIKE %s", ("tab" + doctype,))
+    return bool(rows)
 
 
 def _gtq_bundle_present():
