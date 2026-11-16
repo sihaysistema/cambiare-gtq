@@ -3,8 +3,14 @@
 # For license information, please see license.txt
 
 from __future__ import unicode_literals
-import frappe
+
 from frappe.model.document import Document
 
+from cambiare_gtq.rate_logic import iso_from_option
+
+
 class AvailableCurrencies(Document):
-	pass
+    def validate(self):
+        iso = iso_from_option(self.currency)
+        if iso:
+            self.code = iso

@@ -1,0 +1,23 @@
+[project]
+name = "cambiare_gtq"
+authors = [
+    { name = "Si Hay Sistema", email = "m.monroyc22@gmail.com"}
+]
+description = "Guatemala exchange rates from Banco de Guatemala for ERPNext"
+requires-python = ">=3.10"
+readme = "README.md"
+dynamic = ["version"]
+dependencies = [
+    "zeep>=4.2.1,<5",
+    "numinwords>=0.5.10",
+]
+
+[project.urls]
+Repository = "https://github.com/sihaysistema/cambiare-gtq"
+
+[build-system]
+requires = ["flit_core>=3.4,<4"]
+build-backend = "flit_core.buildapi"
+
+[tool.bench.frappe-dependencies]
+erpnext = ">=15.0.0,<16.0.0"

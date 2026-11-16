@@ -11,6 +11,6 @@ def get_data():
 			"color": "#27AE60",
 			"icon": "octicon octicon-graph",
 			"type": "module",
-			"description": "Tipo cambio",
+			"description": _("Exchange rates from Banco de Guatemala"),
 		}
 	]

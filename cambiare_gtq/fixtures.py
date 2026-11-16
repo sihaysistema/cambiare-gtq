@@ -16,11 +16,8 @@ def fill_fixtures():
         "dt": "Custom Field", "filters": [
             [
                 "name", "in", [
-                    "Currency Exchange-validity_date_ranges",
-                    "Currency Exchange-valid_to",
-                    "Currency Exchange-col_break",
-                    "Currency Exchange-valid_from",
-                    "Currency-currency_textual_name"
+                    "Currency-currency_textual_name",
+                    "Currency Exchange-rate_source"
                 ]
             ]
         ]
