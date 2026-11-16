@@ -1,6 +1,6 @@
 {
  "charts": [],
- "content": "[{\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Cambiare</span>\",\"col\":12}},{\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Configuracion Cambiare\",\"col\":3}},{\"type\":\"spacer\",\"data\":{\"col\":12}},{\"type\":\"card\",\"data\":{\"card_name\":\"Tipos de cambio registrados\",\"col\":4}}]",
+ "content": "[{\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Cambiare</span>\",\"col\":12},\"id\":\"cambiare_header\"},{\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Configuration Cambiare\",\"col\":3},\"id\":\"cambiare_config\"},{\"type\":\"spacer\",\"data\":{\"col\":12},\"id\":\"cambiare_spacer\"},{\"type\":\"card\",\"data\":{\"card_name\":\"Exchange Rates\",\"col\":4},\"id\":\"cambiare_rates\"},{\"type\":\"card\",\"data\":{\"card_name\":\"Cheques\",\"col\":4},\"id\":\"cambiare_cheques\"}]",
  "creation": "2022-11-02 20:00:37.916576",
  "docstatus": 0,
  "doctype": "Workspace",
@@ -13,7 +13,7 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Tipos de cambio registrados",
+   "label": "Exchange Rates",
    "link_count": 1,
    "onboard": 0,
    "type": "Card Break"
@@ -21,15 +21,43 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Tipo de Cambio",
+   "label": "Currency Exchange GTQ",
    "link_count": 0,
    "link_to": "Currency Exchange GTQ",
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Cheques",
+   "link_count": 2,
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Batch Check Print",
+   "link_count": 0,
+   "link_to": "Batch Check Print",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Cambiare Cheque Print Set",
+   "link_count": 0,
+   "link_to": "Cambiare Cheque Print Set",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
   }
  ],
- "modified": "2022-11-02 20:04:31.077734",
+ "modified": "2026-11-16 00:00:00.000000",
  "modified_by": "Administrator",
  "module": "Cambiare GTQ",
  "name": "Cambiare",
@@ -50,7 +78,7 @@
   {
    "color": "Grey",
    "doc_view": "List",
-   "label": "Configuracion Cambiare",
+   "label": "Configuration Cambiare",
    "link_to": "Configuration Cambiare",
    "type": "DocType"
   }

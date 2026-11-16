@@ -5,28 +5,30 @@
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
-  "moneda",
-  "codigo"
+  "currency",
+  "code"
  ],
  "fields": [
   {
-   "fieldname": "moneda",
+   "fieldname": "currency",
    "fieldtype": "Select",
    "in_list_view": 1,
-   "label": "Moneda",
-   "options": "\n3 - Yenes Japoneses - JPY\n6 - Francos Franceses - CHF\n7 - D\u00f3lares Canadienses - CAD\n8 - Liras Italianas - GBP\n15 - Coronas Suecas - SEK\n16 - Colones Costarricenses - CRC\n17 - Colones Salvadore\u00f1os - SVC\n18 - Pesos Mexicanos - MXN\n19 - Lempiras Hondure\u00f1os - HNL\n21 - C\u00f3rdobas Nicarag\u00fcenses - NIO\n22 - Bolivares Venezolanos - VEF\n23 - Corona Danesa - DKK\n24 - Euro - EUR\n25 - Corona Noruega - NOK\n29 - Peso Argentina - ARS\n30 - Real Brasile\u00f1o - BRL\n31 - Won Coreano - KPW\n32 - D\u00f3lar Hong Kong - HKD\n33 - D\u00f3lar Taiw\u00e1n - TWD\n34 - Yuan China - CNY\n35 - Rupia Pakist\u00e1n - PKR\n36 - Rupee India - INR\n37 - Bolivar Fuerte - BOB\n38 - Peso Colombiano - COP\n39 - Peso Dominicano - DOP\n40 - Ringgit Malasia - MYR\n41 - Bol\u00edvar Soberano - BOV\n42 - Zloty - PLN",
+   "label": "Currency",
+   "options": "\n3 - Japanese Yen - JPY\n6 - French Francs - CHF\n7 - Canadian Dollars - CAD\n8 - Italian Lira - GBP\n15 - Swedish Krona - SEK\n16 - Costa Rican Colones - CRC\n17 - Salvadoran Colones - SVC\n18 - Mexican Pesos - MXN\n19 - Honduran Lempiras - HNL\n21 - Nicaraguan Cordobas - NIO\n22 - Venezuelan Bolivares - VEF\n23 - Danish Krone - DKK\n24 - Euro - EUR\n25 - Norwegian Krone - NOK\n29 - Argentine Peso - ARS\n30 - Brazilian Real - BRL\n31 - Korean Won - KPW\n32 - Hong Kong Dollar - HKD\n33 - Taiwan Dollar - TWD\n34 - Chinese Yuan - CNY\n35 - Pakistani Rupee - PKR\n36 - Indian Rupee - INR\n37 - Bolivar Fuerte - BOB\n38 - Colombian Peso - COP\n39 - Dominican Peso - DOP\n40 - Malaysian Ringgit - MYR\n41 - Sovereign Bolivar - BOV\n42 - Zloty - PLN",
+   "reqd": 1,
    "search_index": 1
   },
   {
-   "fieldname": "codigo",
+   "fieldname": "code",
    "fieldtype": "Data",
-   "label": "Codigo",
+   "in_list_view": 1,
+   "label": "Code",
    "read_only": 1
   }
  ],
  "istable": 1,
  "links": [],
- "modified": "2022-01-18 18:25:13.166364",
+ "modified": "2026-11-16 00:00:00.000000",
  "modified_by": "Administrator",
  "module": "Cambiare GTQ",
  "name": "Available Currencies",

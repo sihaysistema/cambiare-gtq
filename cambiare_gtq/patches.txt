@@ -1,0 +1,1 @@
+cambiare_gtq.patches.v1_5.rename_configuration_fields

@@ -15,7 +15,7 @@ with open('cambiare_gtq/__init__.py', 'rb') as f:
 setup(
 	name='cambiare_gtq',
 	version=version,
-	description='Cambio de moneda',
+	description='Guatemala exchange rates from Banco de Guatemala for ERPNext',
 	author='Si Hay Sistema',
 	author_email='m.monroyc22@gmail.com',
 	packages=find_packages(),
