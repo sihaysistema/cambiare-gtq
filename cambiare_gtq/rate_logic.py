@@ -266,10 +266,11 @@ def resolve_closing(rows, requested):
     for row in rows or []:
         row_date = parse_date(row["date"])
         rate = float(row["rate"])
+        provider = row.get("rate_source") if isinstance(row, dict) else None
         if row_date == requested:
-            exact = {"rate": rate, "rate_date": row_date, "source": "exact"}
+            exact = {"rate": rate, "rate_date": row_date, "source": "exact", "rate_source": provider}
         elif row_date < requested and (prior is None or row_date > prior["rate_date"]):
-            prior = {"rate": rate, "rate_date": row_date, "source": "fallback"}
+            prior = {"rate": rate, "rate_date": row_date, "source": "fallback", "rate_source": provider}
     return exact or prior
 
 
@@ -466,7 +467,10 @@ class ExchangeService(object):
 
         direct = resolve_closing(self.book.find(from_currency, to_currency), requested)
         if direct and direct["source"] == "exact":
-            return self._result(direct["rate"], direct["rate_date"], from_currency, to_currency, "exact")
+            return self._result(
+                direct["rate"], direct["rate_date"], from_currency, to_currency, "exact",
+                direct.get("rate_source"),
+            )
 
         fetched = False
         if _is_truthy(fetch_if_missing) and _involves_gtq(from_currency, to_currency):
@@ -476,22 +480,26 @@ class ExchangeService(object):
             direct = resolve_closing(self.book.find(from_currency, to_currency), requested)
             if direct and direct["source"] == "exact":
                 return self._result(
-                    direct["rate"], direct["rate_date"], from_currency, to_currency, "banguat"
+                    direct["rate"], direct["rate_date"], from_currency, to_currency, "banguat",
+                    direct.get("rate_source") or "Banguat",
                 )
 
         inverse = resolve_closing(self.book.find(to_currency, from_currency), requested)
         if inverse and inverse["source"] == "exact":
             source = "banguat" if fetched else "inverse"
             return self._result(
-                reciprocal(inverse["rate"]), inverse["rate_date"], from_currency, to_currency, source
+                reciprocal(inverse["rate"]), inverse["rate_date"], from_currency, to_currency, source,
+                inverse.get("rate_source"),
             )
         if direct:
             return self._result(
-                direct["rate"], direct["rate_date"], from_currency, to_currency, "fallback"
+                direct["rate"], direct["rate_date"], from_currency, to_currency, "fallback",
+                direct.get("rate_source"),
             )
         if inverse:
             return self._result(
-                reciprocal(inverse["rate"]), inverse["rate_date"], from_currency, to_currency, "fallback"
+                reciprocal(inverse["rate"]), inverse["rate_date"], from_currency, to_currency, "fallback",
+                inverse.get("rate_source"),
             )
         raise RateError("not_found", (from_currency, to_currency, iso_date(requested)))
 
@@ -546,8 +554,8 @@ class ExchangeService(object):
             "covered_to": iso_date(used[-1][0]),
         }
 
-    def _result(self, rate, rate_date, from_currency, to_currency, source):
-        return {
+    def _result(self, rate, rate_date, from_currency, to_currency, source, rate_source=None):
+        result = {
             "rate": float(rate),
             "rate_date": iso_date(rate_date),
             "from_currency": from_currency,
@@ -555,6 +563,9 @@ class ExchangeService(object):
             "source": source,
             "meaning": "1 {0} = {1} {2}".format(from_currency, float(rate), to_currency),
         }
+        if rate_source:
+            result["rate_source"] = rate_source
+        return result
 
 
 def _involves_gtq(from_currency, to_currency):

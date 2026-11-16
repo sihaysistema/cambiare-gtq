@@ -112,7 +112,9 @@ jinja = {
 # ------------
 
 # before_install = "cambiare_gtq.install.before_install"
-# after_install = "cambiare_gtq.install.after_install"
+after_install = "cambiare_gtq.install.after_install"
+after_sync = "cambiare_gtq.install.after_sync"
+after_migrate = "cambiare_gtq.install.after_migrate"
 
 # Desk Notifications
 # ------------------
