@@ -100,9 +100,27 @@ Simple unweighted arithmetic average of one rate per calendar day in the inclusi
 }
 ```
 
+### `cambiare_gtq.convert.convert`
+
+`convert(amount, from_currency, to_currency, date=None, from_date=None, to_date=None, method="daily", fetch_if_missing=1)`
+
+`method` is `daily` (one date, default today) or `average` (unweighted mean of each day's rate). A direct pair is used when that date has a row. Otherwise the rate is crossed through GTQ, so EUR to BTC is the EUR/GTQ rate divided by the BTC/GTQ rate. `amount` in the response is a decimal string.
+
+The desk page **Currency Converter** calls this method.
+
+## Bundled history and Bitcoin
+
+`cambiare_gtq/data/bundled_rates.csv.gz` holds one row per date and pair: Banguat rates versus GTQ for every currency the bank publishes, plus BTC/USD and BTC/GTQ from [Precyos](https://precyos.com). BTC/GTQ is the Precyos BTC/USD price times the Banguat as-of venta. The file is not a fixture. Install and migrate bulk-insert it, skipping any date and pair that already exists, so a hand-edited row is kept. Currency Exchange GTQ receives every bundled pair. ERPNext Currency Exchange receives a pair only when both currencies already exist. The app creates the Currency `BTC` (Bitcoin, symbol ₿, fraction Satoshi).
+
+**Bitcoin Rate Source** on Configuration Cambiare defaults to Precyos. A scheduled run, after the Banguat pull, refreshes the last 14 days from `https://precyos.com/api/method/precyos.api.series?item_code=64.15.15.05.001`. Days Precyos does not publish use the median of Bisq BTC/USD trades in that UTC day (`https://markets.bisq.network/api/trades`). Choosing Bisq uses that median for every day. `cambiare_gtq.btc_sync.refresh_btc_rates` runs the same refresh on demand. `cambiare_gtq.historical.reload_historical_rates` inserts any bundled rows that are still missing.
+
+Each stored row has **Rate Source**: `Banguat`, `Precyos`, or `Bisq median`.
+
+Rates are sourced from Banco de Guatemala, Precyos, and Bisq. Thank you to all three.
+
 ## Scheduler
 
-Configuration Cambiare → **Query Frequency** (`Hourly`, `Daily`, `Weekly`, `Monthly`) selects which scheduled job fetches today's rates. **Disable Queries** turns the jobs off. USD is always fetched. Extra currencies are the rows under Available Currencies.
+Configuration Cambiare → **Query Frequency** (`Hourly`, `Daily`, `Weekly`, `Monthly`) selects which scheduled job fetches today's Banguat rates and then refreshes Bitcoin for the last 14 days. **Disable Queries** turns the jobs off. USD is always fetched from Banguat. Extra currencies are the rows under Available Currencies. Live Banguat calls keep filling dates after the bundled file.
 
 ## Language
 

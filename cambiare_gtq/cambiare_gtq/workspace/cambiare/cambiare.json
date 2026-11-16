@@ -55,6 +55,14 @@
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Currency Converter",
+   "link_to": "currency-converter",
+   "link_type": "Page",
+   "type": "Link"
   }
  ],
  "modified": "2026-11-16 00:00:00.000000",
