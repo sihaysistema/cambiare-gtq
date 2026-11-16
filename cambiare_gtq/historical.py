@@ -20,6 +20,7 @@ from decimal import Decimal
 import frappe
 from frappe.utils import now_datetime
 
+from cambiare_gtq.rate_logic import canonical_saved_currency
 from cambiare_gtq.series_math import SOURCE_BANGUAT, decimal_string, quantize_rate
 
 BUNDLE_VERSION = "2026-11-16"
@@ -88,8 +89,14 @@ def reload_historical_rates():
 def load_historical_rates(force=False):
     if not force and frappe.db.get_default(MARKER) == BUNDLE_VERSION and _history_is_complete():
         stamped = stamp_owned_sources()
-        if stamped:
-            return {"status": "sources_stamped", "stamped": stamped, "version": BUNDLE_VERSION}
+        banguat = stamp_matching_banguat()
+        if stamped or banguat:
+            return {
+                "status": "sources_stamped",
+                "stamped": stamped,
+                "banguat_stamped": banguat,
+                "version": BUNDLE_VERSION,
+            }
         return {"status": "already_loaded", "version": BUNDLE_VERSION}
     if not os.path.exists(bundle_path()):
         return {"status": "missing_bundle"}
@@ -124,6 +131,7 @@ def load_historical_rates(force=False):
     for doctype, rows in pending.items():
         _flush(doctype, rows)
     stamped = stamp_owned_sources(records)
+    banguat = stamp_matching_banguat(records)
     if _history_is_complete():
         frappe.db.set_default(MARKER, BUNDLE_VERSION)
     return {
@@ -133,6 +141,7 @@ def load_historical_rates(force=False):
         "standard_created": standard_created,
         "bundled_rows": len(records),
         "stamped": stamped,
+        "banguat_stamped": banguat,
     }
 
 
@@ -175,6 +184,115 @@ def stamp_owned_sources(records=None):
             )
             stamped += len(chunk)
     return stamped
+
+
+def stamp_matching_banguat(records=None):
+    """Tag empty rows whose rate is the bundled Banguat figure.
+
+    Cambiare's own pull stores that figure and its reciprocal. A hand-entered
+    rate that differs stays empty. Precyos rows in the file are not used here.
+    """
+    records = records if records is not None else read_bundle()
+    bundled = {}
+    for record in records:
+        if (record.get("source") or SOURCE_BANGUAT) != SOURCE_BANGUAT:
+            continue
+        rate = quantize_rate(record["rate"])
+        if rate <= 0:
+            continue
+        bundled[(record["date"], record["from_currency"], record["to_currency"])] = rate
+    inverses = {
+        (day, to, fr): quantize_rate(Decimal(1) / rate)
+        for (day, fr, to), rate in bundled.items()
+    }
+    stamped = 0
+    for doctype in _DOCTYPES:
+        if not _has_source(doctype):
+            continue
+        rows = frappe.db.sql(
+            """SELECT name, `date`, from_currency, to_currency, exchange_rate
+            FROM `tab{0}`
+            WHERE IFNULL(rate_source, '') = ''""".format(doctype)
+        )
+        names = []
+        for name, day, fr, to, rate in rows:
+            key = (str(day), fr, to)
+            stored = quantize_rate(rate)
+            if bundled.get(key) == stored or inverses.get(key) == stored:
+                names.append(name)
+        _set_banguat(doctype, names)
+        stamped += len(names)
+    return stamped
+
+
+def remap_saved_currencies():
+    """Re-point Available Currencies rows onto the Banguat catalog.
+
+    The ISO code already stored is the currency the user meant. CHF moves
+    from variable 6 to variable 5. An ISO the bank does not publish keeps
+    its variable number and takes that variable's real code.
+    """
+    if not frappe.db.table_exists("Available Currencies"):
+        return 0
+    _forget("Available Currencies")
+    column = None
+    if frappe.db.has_column("Available Currencies", "currency"):
+        column = "currency"
+    elif frappe.db.has_column("Available Currencies", "moneda"):
+        column = "moneda"
+    if not column:
+        return 0
+    code_column = None
+    if frappe.db.has_column("Available Currencies", "code"):
+        code_column = "code"
+    elif frappe.db.has_column("Available Currencies", "codigo"):
+        code_column = "codigo"
+    selected = "name, `{0}`".format(column)
+    if code_column:
+        selected += ", `{0}`".format(code_column)
+    rows = frappe.db.sql(
+        "SELECT {selected} FROM `tabAvailable Currencies`".format(selected=selected)
+    )
+    updated = 0
+    for row in rows:
+        name = row[0]
+        current = row[1]
+        code = row[2] if code_column else None
+        label, iso = canonical_saved_currency(current, code)
+        if label == current and (not code_column or iso == (code or "")):
+            continue
+        if code_column:
+            frappe.db.sql(
+                "UPDATE `tabAvailable Currencies` SET `{column}` = %s, `{code}` = %s WHERE name = %s".format(
+                    column=column, code=code_column
+                ),
+                (label, iso, name),
+            )
+        else:
+            frappe.db.sql(
+                "UPDATE `tabAvailable Currencies` SET `{column}` = %s WHERE name = %s".format(
+                    column=column
+                ),
+                (label, name),
+            )
+        updated += 1
+    return updated
+
+
+def _set_banguat(doctype, names):
+    for start in range(0, len(names), 400):
+        chunk = names[start:start + 400]
+        if not chunk:
+            continue
+        frappe.db.sql(
+            """UPDATE `tab{doctype}`
+            SET rate_source = %s
+            WHERE name IN ({names}) AND IFNULL(rate_source, '') = ''""".format(
+                doctype=doctype,
+                names=",".join(["%s"] * len(chunk)),
+            ),
+            tuple([SOURCE_BANGUAT] + chunk),
+        )
 
 
 def _needs_stamp(doctype):

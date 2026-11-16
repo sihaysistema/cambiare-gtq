@@ -114,7 +114,9 @@ The desk page **Currency Converter** calls this method.
 
 **Bitcoin Rate Source** on Configuration Cambiare defaults to Precyos. A scheduled run, after the Banguat pull, refreshes the last 14 days from `https://precyos.com/api/method/precyos.api.series?item_code=64.15.15.05.001`. Days Precyos does not publish use the median of Bisq BTC/USD trades in that UTC day (`https://markets.bisq.network/api/trades`). Choosing Bisq uses that median for every day. `cambiare_gtq.btc_sync.refresh_btc_rates` runs the same refresh on demand. `cambiare_gtq.historical.reload_historical_rates` inserts any bundled rows that are still missing.
 
-Each stored row has **Rate Source**: `Banguat`, `Precyos`, or `Bisq median`.
+Each stored row has **Rate Source**: `Banguat`, `Precyos`, or `Bisq median`. A live Banguat pull sets that source. Migrate also fills `Banguat` on an existing row whose rate matches the bundled bank rate for that date and pair, and on the reciprocal of that rate. A different rate stays blank.
+
+The Available Currencies list is built from Banguat's variable catalog. A saved row stays on the ISO code it already shows: `CHF` moves from variable 6 to variable 5, `GBP` from 8 to 9, and `VEF` from 22 to 37. Codes the bank does not publish (`KPW`, `BOB`, `BOV`) are rewritten to that variable's real code (`KRW`, `VEF`, `VES`).
 
 Rates are sourced from Banco de Guatemala, Precyos, and Bisq. Thank you to all three.
 

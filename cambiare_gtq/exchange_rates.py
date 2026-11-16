@@ -88,6 +88,14 @@ class FrappeRateBook(object):
             if frappe.get_meta(doctype).has_field("rate_source"):
                 doc.rate_source = "Banguat"
             doc.insert(ignore_permissions=True)
+            # The column can exist before meta notices it. A pull from this
+            # app always records Banguat; a hand-entered row never comes here.
+            if frappe.db.has_column(doctype, "rate_source"):
+                frappe.db.sql(
+                    """UPDATE `tab{doctype}` SET rate_source = %s
+                    WHERE name = %s AND IFNULL(rate_source, '') = ''""".format(doctype=doctype),
+                    ("Banguat", doc.name),
+                )
             created += 1
         if not self.doctypes():
             raise RateError("not_found", (from_currency, to_currency, str(rate_date)))
