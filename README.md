@@ -110,7 +110,7 @@ The desk page **Currency Converter** calls this method.
 
 `cambiare_gtq/data/bundled_rates.csv.gz` holds one row per date and pair: Banguat rates versus GTQ for every currency the bank publishes, plus BTC/USD and BTC/GTQ from [Precyos](https://precyos.com). BTC/GTQ is the Precyos BTC/USD price times the Banguat as-of venta. The file is not a fixture. Install and migrate bulk-insert it, skipping any date and pair that already exists, so a hand-edited row is kept. Currency Exchange GTQ receives every bundled pair. ERPNext Currency Exchange receives a pair only when both currencies already exist. The app creates the Currency `BTC` (Bitcoin, symbol ₿, fraction Satoshi).
 
-**Bitcoin Rate Source** on Configuration Cambiare defaults to Precyos. A scheduled run, after the Banguat pull, refreshes the last 14 days from `https://precyos.com/api/method/precyos.api.series?item_code=64.15.15.05.001`. Days Precyos does not publish use the median of Bisq BTC/USD trades in that UTC day (`https://markets.bisq.network/api/trades`). Choosing Bisq uses that median for every day. `cambiare_gtq.btc_sync.refresh_btc_rates` runs the same refresh on demand. `cambiare_gtq.historical.reload_historical_rates` inserts any bundled rows that are still missing.
+**Bitcoin Rate Source** on Configuration Cambiare defaults to Precyos. A scheduled run, after the Banguat pull, refreshes Bitcoin from `https://precyos.com/api/method/precyos.api.series?item_code=64.15.15.05.001`. The window is the last 14 days. Until BTC/USD exists for every day after the bundled Precyos series (2026-10-23), the window also includes that gap. Days Precyos does not publish are filled from the median of Bisq BTC/USD trades in that UTC day (`https://markets.bisq.network/api/trades`), one request per day. A day Bisq did not trade stays empty. Choosing Bisq uses that median for every day. `cambiare_gtq.btc_sync.refresh_btc_rates` runs the same refresh on demand. `cambiare_gtq.historical.reload_historical_rates` inserts any bundled rows that are still missing.
 
 Each stored row has **Rate Source**: `Banguat`, `Precyos`, or `Bisq median`. A live Banguat pull sets that source. Migrate also fills `Banguat` on an existing row whose rate matches the bundled bank rate for that date and pair, and on the reciprocal of that rate. A different rate stays blank.
 
@@ -120,7 +120,7 @@ Rates are sourced from Banco de Guatemala, Precyos, and Bisq. Thank you to all t
 
 ## Scheduler
 
-Configuration Cambiare → **Query Frequency** (`Hourly`, `Daily`, `Weekly`, `Monthly`) selects which scheduled job fetches today's Banguat rates and then refreshes Bitcoin for the last 14 days. **Disable Queries** turns the jobs off. USD is always fetched from Banguat. Extra currencies are the rows under Available Currencies. Live Banguat calls keep filling dates after the bundled file.
+Configuration Cambiare → **Query Frequency** (`Hourly`, `Daily`, `Weekly`, `Monthly`) selects which scheduled job fetches today's Banguat rates and then refreshes Bitcoin. The Bitcoin window is the last 14 days, extended back through the first day still missing after the bundled Precyos series. **Disable Queries** turns the jobs off. USD is always fetched from Banguat. Extra currencies are the rows under Available Currencies. Live Banguat calls keep filling dates after the bundled file.
 
 ## Language
 

@@ -14,6 +14,8 @@ no source, are left alone.
 from __future__ import unicode_literals
 
 import datetime
+import json
+import os
 
 import frappe
 import requests
@@ -22,12 +24,17 @@ from frappe.utils import getdate, nowdate
 from cambiare_gtq.historical import _currency_names, _has_source, ensure_btc_currency
 from cambiare_gtq.series_math import (
     BISQ_URL,
+    BUNDLE_BTC_LAST,
     PRECYOS_URL,
     SOURCE_BISQ,
     SOURCE_PRECYOS,
     btc_gtq,
+    collect_bisq_days,
+    days_without_precyos,
     decimal_string,
-    page_bisq,
+    default_refresh_start,
+    iter_days,
+    mapped_rate,
     precyos_usd_points,
     quantize_rate,
     trades_by_utc_day,
@@ -48,9 +55,17 @@ def selected_btc_source():
 
 @frappe.whitelist()
 def refresh_btc_rates(from_date=None, to_date=None):
-    """Recompute BTC pairs for a window. Defaults to the last 14 UTC days."""
+    """Recompute BTC pairs for a window.
+
+    With no from-date, the window is the last 14 days. If BTC/USD is still
+    missing somewhere after the bundled Precyos series (2026-10-23), the
+    window starts at the first missing day so that gap is filled once.
+    """
     end = getdate(to_date or nowdate())
-    start = getdate(from_date) if from_date else end - datetime.timedelta(days=13)
+    if from_date:
+        start = getdate(from_date)
+    else:
+        start = default_refresh_start(end, _btc_usd_dates(), _bundle_btc_last())
     if start > end:
         frappe.throw(frappe._("From Date must be on or before To Date."))
     ensure_btc_currency()
@@ -64,8 +79,12 @@ def sync_btc_window(start, end, source=SOURCE_PRECYOS, precyos_points=None, bisq
     if precyos_points is None and source == SOURCE_PRECYOS:
         precyos_points = fetch_precyos_points()
     precyos = {day: rate for day, rate in precyos_usd_points(precyos_points or [])}
-    if bisq_trades is None and (source == SOURCE_BISQ or source == SOURCE_PRECYOS):
-        bisq_trades = fetch_bisq_trades(start, end)
+    if bisq_trades is None:
+        if source == SOURCE_BISQ:
+            needed = list(iter_days(start, end))
+        else:
+            needed = days_without_precyos(start, end, precyos)
+        bisq_trades = fetch_bisq_days(needed) if needed else []
     bisq = trades_by_utc_day(bisq_trades or [])
     usd_gtq = _usd_gtq_rates()
     created = updated = kept = empty = 0
@@ -108,16 +127,13 @@ def sync_btc_window(start, end, source=SOURCE_PRECYOS, precyos_points=None, bisq
 
 
 def _price_for_day(day, source, precyos, bisq):
-    text = day.isoformat() if hasattr(day, "isoformat") else str(day)
     if source == SOURCE_BISQ:
-        price = bisq.get(day)
+        price = mapped_rate(bisq, day)
         return (price, SOURCE_BISQ) if price is not None else (None, None)
-    if text in precyos:
-        return precyos[text], SOURCE_PRECYOS
-    # Precyos map is keyed by iso strings from the feed.
-    if day in precyos:
-        return precyos[day], SOURCE_PRECYOS
-    price = bisq.get(day)
+    precyos_price = mapped_rate(precyos, day)
+    if precyos_price is not None:
+        return precyos_price, SOURCE_PRECYOS
+    price = mapped_rate(bisq, day)
     if price is None:
         return None, None
     return price, SOURCE_BISQ
@@ -133,7 +149,12 @@ def fetch_precyos_points():
     return price.get("points") or []
 
 
-def fetch_bisq_trades(start, end):
+def fetch_bisq_days(days):
+    """Median input for each UTC day Precyos did not publish.
+
+    One request covers one day. A day Bisq did not trade is absent from the
+    result and stays empty. A day with 2000 trades is paged until it ends.
+    """
     def fetch_page(timestamp_from, timestamp_to):
         response = requests.get(
             BISQ_URL,
@@ -148,12 +169,35 @@ def fetch_bisq_trades(start, end):
             timeout=60,
         )
         response.raise_for_status()
-        return response.json()
+        payload = response.json()
+        if isinstance(payload, dict):
+            payload = payload.get("trades") or payload.get("data") or []
+        return payload
 
     def pause():
         time_sleep(1)
 
-    return page_bisq(fetch_page, start, end, pause)
+    return collect_bisq_days(fetch_page, days, pause)
+
+
+def _bundle_btc_last():
+    path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "bundled_rates_manifest.json")
+    try:
+        with open(path) as handle:
+            last = json.load(handle)["btc"]["last"]
+        return datetime.date.fromisoformat(last)
+    except (OSError, KeyError, ValueError):
+        return datetime.date.fromisoformat(BUNDLE_BTC_LAST)
+
+
+def _btc_usd_dates():
+    if not frappe.db.table_exists("Currency Exchange GTQ"):
+        return []
+    rows = frappe.db.sql(
+        """SELECT DISTINCT `date` FROM `tabCurrency Exchange GTQ`
+        WHERE from_currency = 'BTC' AND to_currency = 'USD'"""
+    )
+    return [getdate(row[0]) for row in rows]
 
 
 def time_sleep(seconds):
