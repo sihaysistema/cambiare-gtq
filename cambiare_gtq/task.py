@@ -41,4 +41,7 @@ def _run_if_configured(frequency):
     if str(config.get("frequency") or "") != frequency:
         return None
     today = nowdate()
-    return backfill_exchange_rates(today, today)
+    banguat = backfill_exchange_rates(today, today)
+    from cambiare_gtq.btc_sync import refresh_btc_rates
+    bitcoin = refresh_btc_rates()
+    return {"banguat": banguat, "bitcoin": bitcoin}

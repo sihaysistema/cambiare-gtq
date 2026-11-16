@@ -283,5 +283,79 @@ class TestCatalogAndLegacyValues(unittest.TestCase):
         self.assertNotIn("Cada Hora", json.dumps(doc))
 
 
+def _load_series_math():
+    path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "series_math.py")
+    spec = importlib.util.spec_from_file_location("cambiare_series_math_under_test", path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+series_math = _load_series_math()
+
+
+class TestSeriesMath(unittest.TestCase):
+    def test_median_odd_and_even(self):
+        self.assertEqual(series_math.median([3, 1, 2]), 2)
+        self.assertEqual(series_math.median(["10", "30"]), 20)
+
+    def test_precyos_drops_isolated_prints(self):
+        points = [
+            {"date": "2009-10-05", "usd": "0.000764"},
+            {"date": "2010-05-22", "usd": "0.0041"},
+            {"date": "2010-08-18", "usd": "0.07"},
+            {"date": "2010-08-19", "usd": "0.08"},
+        ]
+        kept = series_math.precyos_usd_points(points)
+        self.assertEqual([day for day, _rate in kept], ["2010-08-18", "2010-08-19"])
+
+    def test_btc_gtq_uses_asof_banguat_venta(self):
+        usd = {
+            datetime.date(2010, 8, 17): series_math.Decimal("7.9"),
+            datetime.date(2010, 8, 18): series_math.Decimal("8.0"),
+        }
+        self.assertEqual(
+            series_math.asof_rate(usd, datetime.date(2010, 8, 19)),
+            series_math.Decimal("8.0"),
+        )
+        self.assertEqual(
+            series_math.btc_gtq("0.07", "8.0"),
+            series_math.Decimal("0.560"),
+        )
+
+    def test_cross_rate_through_gtq(self):
+        # 1 EUR = 8 GTQ, 1 BTC = 16 GTQ => 1 EUR = 0.5 BTC
+        self.assertEqual(series_math.bridge_rate("8", "16"), series_math.Decimal("0.5"))
+
+    def test_bisq_groups_the_utc_day_before_the_next_midnight(self):
+        # 2024-01-01 00:30 UTC and 2024-01-01 23:00 UTC belong to 2024-01-01.
+        trades = [
+            {"trade_date": 1704069000000, "price": "100"},
+            {"trade_date": 1704150000000, "price": "300"},
+            {"trade_date": 1704153600000, "price": "900"},
+        ]
+        grouped = series_math.trades_by_utc_day(trades)
+        self.assertEqual(grouped[datetime.date(2024, 1, 1)], 200)
+        self.assertEqual(grouped[datetime.date(2024, 1, 2)], 900)
+
+    def test_bisq_paging_stops_between_pages(self):
+        pages = [
+            [{"trade_date": 1704069000000, "price": "1"}, {"trade_date": 1704070000000, "price": "2"}],
+            [{"trade_date": 1704071000000, "price": "3"}],
+        ]
+        calls = []
+
+        def fetch(start, end):
+            calls.append((start, end))
+            return pages.pop(0) if pages else []
+
+        pauses = []
+        collected = series_math.page_bisq(
+            fetch, datetime.date(2024, 1, 1), datetime.date(2024, 1, 1), lambda: pauses.append(1)
+        )
+        self.assertEqual(len(collected), 2)
+        self.assertEqual(pauses, [])
+
+
 if __name__ == "__main__":
     unittest.main()

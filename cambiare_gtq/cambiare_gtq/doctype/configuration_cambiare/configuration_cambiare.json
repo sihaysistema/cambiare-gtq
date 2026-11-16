@@ -7,6 +7,7 @@
  "field_order": [
   "frequency",
   "disable_queries",
+  "btc_rate_source",
   "available_currencies_section",
   "currencies"
  ],
@@ -26,6 +27,14 @@
    "label": "Disable Queries"
   },
   {
+   "fieldname": "btc_rate_source",
+   "fieldtype": "Select",
+   "label": "Bitcoin Rate Source",
+   "options": "Precyos\nBisq",
+   "default": "Precyos",
+   "description": "Precyos is used for BTC/USD. Days it does not publish fall back to the Bisq median. Bisq uses that median for every day."
+  },
+  {
    "fieldname": "available_currencies_section",
    "fieldtype": "Section Break",
    "label": "Available Currencies"
@@ -39,7 +48,7 @@
  ],
  "issingle": 1,
  "links": [],
- "modified": "2026-11-16 00:00:00.000000",
+ "modified": "2026-11-16 05:30:00.000000",
  "modified_by": "Administrator",
  "module": "Cambiare GTQ",
  "name": "Configuration Cambiare",
