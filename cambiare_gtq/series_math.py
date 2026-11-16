@@ -61,6 +61,15 @@ def utc_day(epoch_ms):
     return stamp.date()
 
 
+def precyos_rate_day(epoch_ms):
+    """Precyos labels date D with the trades in the 24h before 00:00 UTC on D.
+
+    A trade during UTC calendar day D-1 is stored as D. The window is
+    ``[D-1 00:00 UTC, D 00:00 UTC)``.
+    """
+    return utc_day(epoch_ms) + datetime.timedelta(days=1)
+
+
 def precyos_usd_points(points):
     """BTC/USD prints from Precyos, dropping the two isolated pre-history dates."""
     kept = []
@@ -98,10 +107,13 @@ def bridge_rate(from_to_gtq, to_to_gtq):
 
 
 def trades_by_utc_day(trades):
-    """Group Bisq trades by the UTC day they printed. Price is BTC in USD."""
+    """Median BTC/USD by the Precyos rate date.
+
+    Trades in ``[D-1 00:00 UTC, D 00:00 UTC)`` are the value for date D.
+    """
     grouped = {}
     for trade in trades or []:
-        day = utc_day(trade["trade_date"])
+        day = precyos_rate_day(trade["trade_date"])
         grouped.setdefault(day, []).append(Decimal(str(trade["price"])))
     return {day: median(prices) for day, prices in grouped.items() if prices}
 
@@ -168,13 +180,25 @@ def mapped_rate(mapping, day):
     return None
 
 
+def bisq_window(rate_date):
+    """Unix seconds for the trades Precyos stores as ``rate_date``.
+
+    The window is ``[rate_date - 1 day 00:00 UTC, rate_date 00:00 UTC)``.
+    ``timestamp_to`` is the last inclusive second, so a trade exactly at
+    midnight belongs to the next rate date.
+    """
+    end = _utc_midnight(rate_date)
+    return end - 86400, end - 1
+
+
 def collect_bisq_days(fetch_page, days, pause):
-    """Fetch Bisq trades one UTC day at a time.
+    """Fetch Bisq trades for each Precyos rate date.
 
     ``fetch_page(timestamp_from_seconds, timestamp_to_seconds)`` returns one
-    page sorted ascending. A day with no trades contributes nothing. A full
-    page of 2000 trades is followed by the next page of that same day.
-    ``pause`` runs between pages and between days.
+    page sorted ascending. The request covers the previous UTC day. A day
+    with no trades contributes nothing. A full page of 2000 trades is
+    followed by the next page of that same window. ``pause`` runs between
+    pages and between days.
     """
     collected = []
     first_day = True
@@ -182,8 +206,7 @@ def collect_bisq_days(fetch_page, days, pause):
         if not first_day:
             pause()
         first_day = False
-        start_ts = _utc_midnight(day)
-        end_ts = _utc_midnight(day + datetime.timedelta(days=1))
+        start_ts, end_ts = bisq_window(day)
         cursor = start_ts
         while cursor < end_ts:
             page = list(fetch_page(cursor, end_ts) or [])

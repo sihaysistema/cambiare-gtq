@@ -343,6 +343,10 @@ class TestCatalogAndLegacyValues(unittest.TestCase):
             "cambiare_gtq.patches.v1_5.backfill_currency_exchange_gtq",
             patch_text,
         )
+        self.assertIn(
+            "cambiare_gtq.patches.v1_5.realign_bisq_rates",
+            patch_text,
+        )
 
     def test_configuration_doctype_is_english(self):
         path = os.path.join(
@@ -408,16 +412,21 @@ class TestSeriesMath(unittest.TestCase):
         # 1 EUR = 8 GTQ, 1 BTC = 16 GTQ => 1 EUR = 0.5 BTC
         self.assertEqual(series_math.bridge_rate("8", "16"), series_math.Decimal("0.5"))
 
-    def test_bisq_groups_the_utc_day_before_the_next_midnight(self):
-        # 2024-01-01 00:30 UTC and 2024-01-01 23:00 UTC belong to 2024-01-01.
+    def test_bisq_median_is_dated_the_precyos_way(self):
+        # Trades during 2024-01-01 UTC are Precyos date 2024-01-02.
+        # A trade at 2024-01-02 00:00 UTC belongs to 2024-01-03.
         trades = [
             {"trade_date": 1704069000000, "price": "100"},
             {"trade_date": 1704150000000, "price": "300"},
             {"trade_date": 1704153600000, "price": "900"},
         ]
         grouped = series_math.trades_by_utc_day(trades)
-        self.assertEqual(grouped[datetime.date(2024, 1, 1)], 200)
-        self.assertEqual(grouped[datetime.date(2024, 1, 2)], 900)
+        self.assertNotIn(datetime.date(2024, 1, 1), grouped)
+        self.assertEqual(grouped[datetime.date(2024, 1, 2)], 200)
+        self.assertEqual(grouped[datetime.date(2024, 1, 3)], 900)
+        start, end = series_math.bisq_window(datetime.date(2024, 1, 2))
+        self.assertEqual(start, series_math._utc_midnight(datetime.date(2024, 1, 1)))
+        self.assertEqual(end, series_math._utc_midnight(datetime.date(2024, 1, 2)) - 1)
 
     def test_bisq_paging_stops_between_pages(self):
         pages = [
@@ -459,10 +468,9 @@ class TestSeriesMath(unittest.TestCase):
 
         def fetch(start, end):
             calls.append((start, end))
-            # Nov 4 has no trades. Nov 5 has two, the second page is short.
-            if start == series_math._utc_midnight(datetime.date(2026, 11, 4)):
-                return []
-            if start == series_math._utc_midnight(datetime.date(2026, 11, 5)):
+            # Rate date Nov 5 uses trades on Nov 4. Rate date Nov 4 has none.
+            nov4 = series_math._utc_midnight(datetime.date(2026, 11, 4))
+            if start == nov4:
                 return [
                     {"trade_date": start * 1000 + 60_000, "price": "10"},
                     {"trade_date": start * 1000 + 120_000, "price": "30"},
@@ -472,6 +480,8 @@ class TestSeriesMath(unittest.TestCase):
         pauses = []
         days = [datetime.date(2026, 11, 4), datetime.date(2026, 11, 5)]
         collected = series_math.collect_bisq_days(fetch, days, lambda: pauses.append(1))
+        self.assertEqual(calls[1][0], series_math._utc_midnight(datetime.date(2026, 11, 4)))
+        self.assertEqual(calls[1][1], series_math._utc_midnight(datetime.date(2026, 11, 5)) - 1)
         self.assertEqual(len(calls), 2)
         self.assertEqual(pauses, [1])
         grouped = series_math.trades_by_utc_day(collected)
@@ -486,10 +496,10 @@ class TestSeriesMath(unittest.TestCase):
 
     def test_bisq_day_pages_when_the_first_page_is_full(self):
         day = datetime.date(2026, 11, 5)
-        start = series_math._utc_midnight(day)
+        window_start, _window_end = series_math.bisq_window(day)
         pages = [
-            [{"trade_date": (start + index) * 1000, "price": "1"} for index in range(2000)],
-            [{"trade_date": (start + 2000) * 1000, "price": "5"}],
+            [{"trade_date": (window_start + index) * 1000, "price": "1"} for index in range(2000)],
+            [{"trade_date": (window_start + 2000) * 1000, "price": "5"}],
         ]
 
         def fetch(timestamp_from, timestamp_to):
