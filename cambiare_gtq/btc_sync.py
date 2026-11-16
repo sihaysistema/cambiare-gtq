@@ -6,9 +6,10 @@
 Precyos (https://precyos.com) is the default source. Its public series is
 BTC in USD. BTC/GTQ is that price times the Banguat as-of venta (Precyos has
 no public GTQ endpoint). Days Precyos does not publish fall back to the median
-of Bisq BTC/USD trades in that UTC day. Selecting Bisq in Configuration
-Cambiare uses Bisq for every day in the window. Rows tagged Banguat, or with
-no source, are left alone.
+of Bisq BTC/USD trades in the 24 hours before 00:00 UTC on that date, which is
+how Precyos dates the series. Selecting Bisq in Configuration Cambiare uses
+that median for every day in the window. Rows tagged Banguat, or with no
+source, are left alone.
 """
 
 from __future__ import unicode_literals
@@ -16,6 +17,7 @@ from __future__ import unicode_literals
 import datetime
 import json
 import os
+from decimal import Decimal
 
 import frappe
 import requests
@@ -147,6 +149,90 @@ def fetch_precyos_points():
     sources = message.get("sources") or {}
     price = sources.get("Precio") or {}
     return price.get("points") or []
+
+
+def realign_bisq_rates(precyos_points=None):
+    """Replace Bisq rows with Precyos where Precyos has that date.
+
+    A Bisq row dated D was the median of trades on UTC day D. Precyos stores
+    that median as D+1. Where Precyos publishes D, the row becomes the Precyos
+    price. Otherwise the row moves to D+1. An existing row on the destination
+    date is kept and the mis-dated row is removed.
+    """
+    if precyos_points is None:
+        precyos_points = fetch_precyos_points()
+    precyos = {day: rate for day, rate in precyos_usd_points(precyos_points or [])}
+    usd_gtq = _usd_gtq_rates()
+    replaced = shifted = removed = 0
+    for doctype in ("Currency Exchange GTQ", "Currency Exchange"):
+        if not frappe.db.table_exists(doctype):
+            continue
+        dates = frappe.db.sql(
+            """SELECT DISTINCT `date` FROM `tab{0}`
+            WHERE rate_source = %s
+            ORDER BY `date` DESC""".format(doctype),
+            (SOURCE_BISQ,),
+        )
+        for (day,) in dates:
+            day = getdate(day)
+            text = day.isoformat()
+            if text in precyos:
+                replaced += _replace_bisq_with_precyos(doctype, day, precyos[text], usd_gtq)
+            else:
+                moved, dropped = _shift_bisq_date(doctype, day, day + datetime.timedelta(days=1))
+                shifted += moved
+                removed += dropped
+    return {"replaced": replaced, "shifted": shifted, "removed": removed}
+
+
+def _replace_bisq_with_precyos(doctype, day, btc_usd, usd_gtq):
+    btc_usd = quantize_rate(btc_usd)
+    pairs = {
+        ("BTC", "USD"): btc_usd,
+        ("USD", "BTC"): quantize_rate(Decimal(1) / btc_usd),
+    }
+    base = _asof(usd_gtq, day)
+    if base:
+        gtq = quantize_rate(btc_gtq(btc_usd, base))
+        pairs[("BTC", "GTQ")] = gtq
+        pairs[("GTQ", "BTC")] = quantize_rate(Decimal(1) / gtq)
+    updated = 0
+    for (fr, to), rate in pairs.items():
+        frappe.db.sql(
+            """UPDATE `tab{doctype}`
+            SET exchange_rate = %s, rate_source = %s
+            WHERE `date` = %s AND from_currency = %s AND to_currency = %s
+            AND rate_source = %s""".format(doctype=doctype),
+            (decimal_string(rate), SOURCE_PRECYOS, day.isoformat(), fr, to, SOURCE_BISQ),
+        )
+        updated += 1
+    return updated
+
+
+def _shift_bisq_date(doctype, day, new_day):
+    rows = frappe.db.sql(
+        """SELECT name, from_currency, to_currency FROM `tab{0}`
+        WHERE `date` = %s AND rate_source = %s""".format(doctype),
+        (day.isoformat(), SOURCE_BISQ),
+    )
+    moved = removed = 0
+    for name, fr, to in rows:
+        taken = frappe.db.sql(
+            """SELECT name FROM `tab{0}`
+            WHERE `date` = %s AND from_currency = %s AND to_currency = %s
+            LIMIT 1""".format(doctype),
+            (new_day.isoformat(), fr, to),
+        )
+        if taken:
+            frappe.db.sql("DELETE FROM `tab{0}` WHERE name = %s".format(doctype), (name,))
+            removed += 1
+            continue
+        frappe.db.sql(
+            "UPDATE `tab{0}` SET `date` = %s WHERE name = %s".format(doctype),
+            (new_day.isoformat(), name),
+        )
+        moved += 1
+    return moved, removed
 
 
 def fetch_bisq_days(days):
