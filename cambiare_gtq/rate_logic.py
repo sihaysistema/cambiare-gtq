@@ -121,7 +121,7 @@ class RateError(Exception):
 
     def __init__(self, code, args=()):
         self.code = code
-        self.args = tuple(args)
+        self.details = tuple(args or ())
         super(RateError, self).__init__(code)
 
 
