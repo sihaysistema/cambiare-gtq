@@ -49,9 +49,29 @@ def _table_exists(doctype):
     return frappe.db.table_exists(doctype)
 
 
+def _forget_columns(doctype):
+    """Drop cached column lists. DDL commits immediately and the cache would lie."""
+    table = "tab" + doctype
+    try:
+        frappe.cache().hdel("table_columns", table)
+    except Exception:
+        pass
+    client_cache = getattr(frappe, "client_cache", None)
+    if client_cache is not None:
+        try:
+            client_cache.delete_value("table_columns::{0}".format(table))
+        except Exception:
+            pass
+    local_cols = getattr(frappe.local, "table_columns", None)
+    if isinstance(local_cols, dict):
+        local_cols.pop(doctype, None)
+        local_cols.pop(table, None)
+
+
 def _rename_column(doctype, old, new):
     if not _table_exists(doctype):
         return
+    _forget_columns(doctype)
     has_old = frappe.db.has_column(doctype, old)
     has_new = frappe.db.has_column(doctype, new)
     table = "`tab{0}`".format(doctype)
@@ -62,6 +82,7 @@ def _rename_column(doctype, old, new):
                 table=table, old=old, new=new, column_type=column_type, null_sql=null_sql
             )
         )
+        _forget_columns(doctype)
     elif has_old and has_new:
         frappe.db.sql(
             """UPDATE {table}
@@ -83,6 +104,7 @@ def _column_spec(doctype, column):
 def _rewrite_currency_options():
     if not _table_exists("Available Currencies"):
         return
+    _forget_columns("Available Currencies")
     column = "currency" if frappe.db.has_column("Available Currencies", "currency") else None
     if not column and frappe.db.has_column("Available Currencies", "moneda"):
         column = "moneda"
@@ -102,6 +124,7 @@ def _rewrite_currency_options():
 def _fill_currency_codes():
     if not _table_exists("Available Currencies"):
         return
+    _forget_columns("Available Currencies")
     if not frappe.db.has_column("Available Currencies", "currency"):
         return
     if not frappe.db.has_column("Available Currencies", "code"):
