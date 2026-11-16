@@ -21,7 +21,8 @@ frappe.pages["currency-converter"].on_page_load = function (wrapper) {
       '<div class="checkbox"><label><input type="checkbox" class="fetch" checked> ' +
       __("Fetch if missing") + "</label></div>" +
       '<button class="btn btn-primary convert">' + __("Convert") + "</button>" +
-      '<pre class="result" style="margin-top: 1rem;"></pre>' +
+      '<p class="stamp text-muted" style="margin-top: 1rem;"></p>' +
+      '<pre class="result"></pre>' +
       "</div>"
   );
 
@@ -40,7 +41,16 @@ frappe.pages["currency-converter"].on_page_load = function (wrapper) {
       },
       freeze: true,
       callback: function (response) {
-        $main.find(".result").text(JSON.stringify(response.message, null, 2));
+        var message = response.message || {};
+        var stamp = message.rate_timestamp_utc;
+        if (!stamp && message.rate_timestamp_utc_from) {
+          stamp = message.rate_timestamp_utc_from;
+          if (message.rate_timestamp_utc_to && message.rate_timestamp_utc_to !== stamp) {
+            stamp += " – " + message.rate_timestamp_utc_to;
+          }
+        }
+        $main.find(".stamp").text(stamp ? __("Rate Timestamp (UTC)") + ": " + stamp : "");
+        $main.find(".result").text(JSON.stringify(message, null, 2));
       },
     });
   });

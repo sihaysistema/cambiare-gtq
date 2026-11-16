@@ -21,7 +21,13 @@ import frappe
 from frappe.utils import now_datetime
 
 from cambiare_gtq.rate_logic import canonical_saved_currency
-from cambiare_gtq.series_math import SOURCE_BANGUAT, decimal_string, quantize_rate
+from cambiare_gtq.series_math import (
+    SOURCE_BANGUAT,
+    decimal_string,
+    quantize_rate,
+    rate_timestamp_utc,
+    timestamp_for_column,
+)
 
 BUNDLE_VERSION = "2026-11-16"
 MARKER = "cambiare_gtq_history_loaded"
@@ -104,6 +110,7 @@ def load_historical_rates(force=False):
     if not os.path.exists(bundle_path()):
         return {"status": "missing_bundle"}
     _ensure_gtq_source_column()
+    _ensure_gtq_timestamp_column()
     tables = {doctype for doctype in _DOCTYPES if _table_exists(doctype)}
     records = read_bundle()
     created = 0
@@ -341,6 +348,8 @@ def _row(name, stamp, day, fr, to, rate, source, doctype):
     base = [name, stamp, stamp, "Administrator", "Administrator", 0, 0, day, fr, to, decimal_string(rate), 1, 1]
     if _has_source(doctype):
         base.append(source or SOURCE_BANGUAT)
+    if _has_timestamp(doctype):
+        base.append(timestamp_for_column(rate_timestamp_utc(day, fr, to)))
     return tuple(base)
 
 
@@ -353,6 +362,8 @@ def _flush(doctype, rows):
     ]
     if _has_source(doctype):
         fields.append("rate_source")
+    if _has_timestamp(doctype):
+        fields.append("rate_timestamp_utc")
     width = len(fields)
     for start in range(0, len(rows), 400):
         chunk = rows[start:start + 400]
@@ -395,6 +406,43 @@ def _has_field(doctype, fieldname):
         return frappe.get_meta(doctype).has_field(fieldname)
     except Exception:
         return False
+
+
+def _has_timestamp(doctype):
+    return doctype == "Currency Exchange GTQ" and frappe.db.has_column(doctype, "rate_timestamp_utc")
+
+
+def backfill_rate_timestamps():
+    """Fill empty UTC stamps. Bitcoin is 00:00 UTC. Banguat is 06:00 UTC."""
+    doctype = "Currency Exchange GTQ"
+    if not _table_exists(doctype):
+        return 0
+    _ensure_gtq_timestamp_column()
+    if not frappe.db.has_column(doctype, "rate_timestamp_utc"):
+        return 0
+    frappe.db.sql(
+        """UPDATE `tabCurrency Exchange GTQ`
+        SET rate_timestamp_utc = TIMESTAMP(`date`, '00:00:00')
+        WHERE (from_currency = 'BTC' OR to_currency = 'BTC')
+        AND rate_timestamp_utc IS NULL"""
+    )
+    frappe.db.sql(
+        """UPDATE `tabCurrency Exchange GTQ`
+        SET rate_timestamp_utc = TIMESTAMP(`date`, '06:00:00')
+        WHERE IFNULL(from_currency, '') != 'BTC'
+        AND IFNULL(to_currency, '') != 'BTC'
+        AND rate_timestamp_utc IS NULL"""
+    )
+    return 1
+
+
+def _ensure_gtq_timestamp_column():
+    doctype = "Currency Exchange GTQ"
+    if _table_exists(doctype) and not frappe.db.has_column(doctype, "rate_timestamp_utc"):
+        frappe.db.sql_ddl(
+            "ALTER TABLE `tabCurrency Exchange GTQ` ADD COLUMN `rate_timestamp_utc` datetime"
+        )
+        _forget(doctype)
 
 
 def _ensure_gtq_source_column():
