@@ -347,6 +347,10 @@ class TestCatalogAndLegacyValues(unittest.TestCase):
             "cambiare_gtq.patches.v1_5.realign_bisq_rates",
             patch_text,
         )
+        self.assertIn(
+            "cambiare_gtq.patches.v1_5.backfill_rate_timestamps",
+            patch_text,
+        )
 
     def test_configuration_doctype_is_english(self):
         path = os.path.join(
@@ -365,6 +369,19 @@ class TestCatalogAndLegacyValues(unittest.TestCase):
         self.assertIn("\nHourly\nDaily\nWeekly\nMonthly", fields["frequency"]["options"])
         self.assertEqual(fields["disable_queries"]["label"], "Disable Queries")
         self.assertEqual(fields["currencies"]["label"], "Currencies")
+        gtq_path = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)),
+            "cambiare_gtq",
+            "doctype",
+            "currency_exchange_gtq",
+            "currency_exchange_gtq.json",
+        )
+        with open(gtq_path, "r") as handle:
+            gtq = json.load(handle)
+        stamp = [item for item in gtq["fields"] if item["fieldname"] == "rate_timestamp_utc"][0]
+        self.assertEqual(stamp["fieldtype"], "Datetime")
+        self.assertEqual(stamp["label"], "Rate Timestamp (UTC)")
+        self.assertEqual(stamp["read_only"], 1)
         self.assertNotIn("Cada Hora", json.dumps(doc))
 
 
@@ -427,6 +444,22 @@ class TestSeriesMath(unittest.TestCase):
         start, end = series_math.bisq_window(datetime.date(2024, 1, 2))
         self.assertEqual(start, series_math._utc_midnight(datetime.date(2024, 1, 1)))
         self.assertEqual(end, series_math._utc_midnight(datetime.date(2024, 1, 2)) - 1)
+
+    def test_rate_timestamps_are_utc(self):
+        bitcoin = series_math.rate_timestamp_utc("2026-11-16", "BTC", "USD")
+        self.assertEqual(series_math.iso_utc_z(bitcoin), "2026-11-16T00:00:00Z")
+        banguat = series_math.rate_timestamp_utc("2026-11-15", "USD", "GTQ")
+        self.assertEqual(series_math.iso_utc_z(banguat), "2026-11-15T06:00:00Z")
+        timed = series_math.rate_timestamp_utc(
+            "2026-11-15", "USD", "GTQ", published="15/11/2026 15:30:00"
+        )
+        self.assertEqual(series_math.iso_utc_z(timed), "2026-11-15T21:30:00Z")
+        late = series_math.rate_timestamp_utc(
+            "2026-11-15", "EUR", "GTQ", published="15/11/2026 20:00:00"
+        )
+        self.assertEqual(series_math.iso_utc_z(late), "2026-11-16T02:00:00Z")
+        # A Banguat row read back from MariaDB still serializes with Z.
+        self.assertEqual(series_math.iso_utc_z("2026-11-15 06:00:00"), "2026-11-15T06:00:00Z")
 
     def test_bisq_paging_stops_between_pages(self):
         pages = [

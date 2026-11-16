@@ -6,7 +6,12 @@ from __future__ import unicode_literals
 
 import frappe
 
-from cambiare_gtq.historical import ensure_btc_currency, load_historical_rates, remap_saved_currencies
+from cambiare_gtq.historical import (
+    backfill_rate_timestamps,
+    ensure_btc_currency,
+    load_historical_rates,
+    remap_saved_currencies,
+)
 
 
 def after_install():
@@ -27,4 +32,5 @@ def after_migrate():
     ensure_btc_currency()
     remap_saved_currencies()
     load_historical_rates()
+    backfill_rate_timestamps()
     frappe.db.commit()

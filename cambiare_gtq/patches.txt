@@ -4,3 +4,4 @@ cambiare_gtq.patches.v1_5.load_historical_rates
 cambiare_gtq.patches.v1_5.remap_banguat_currencies
 cambiare_gtq.patches.v1_5.backfill_currency_exchange_gtq
 cambiare_gtq.patches.v1_5.realign_bisq_rates
+cambiare_gtq.patches.v1_5.backfill_rate_timestamps
