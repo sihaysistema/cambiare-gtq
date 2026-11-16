@@ -339,6 +339,10 @@ class TestCatalogAndLegacyValues(unittest.TestCase):
             "cambiare_gtq.patches.v1_5.remap_banguat_currencies",
             patch_text,
         )
+        self.assertIn(
+            "cambiare_gtq.patches.v1_5.backfill_currency_exchange_gtq",
+            patch_text,
+        )
 
     def test_configuration_doctype_is_english(self):
         path = os.path.join(

@@ -191,13 +191,17 @@ def _bundle_btc_last():
 
 
 def _btc_usd_dates():
-    if not frappe.db.table_exists("Currency Exchange GTQ"):
-        return []
-    rows = frappe.db.sql(
-        """SELECT DISTINCT `date` FROM `tabCurrency Exchange GTQ`
-        WHERE from_currency = 'BTC' AND to_currency = 'USD'"""
-    )
-    return [getdate(row[0]) for row in rows]
+    found = set()
+    for doctype in ("Currency Exchange GTQ", "Currency Exchange"):
+        if not frappe.db.table_exists(doctype):
+            continue
+        rows = frappe.db.sql(
+            """SELECT DISTINCT `date` FROM `tab{0}`
+            WHERE from_currency = 'BTC' AND to_currency = 'USD'""".format(doctype)
+        )
+        for row in rows:
+            found.add(getdate(row[0]))
+    return found
 
 
 def time_sleep(seconds):
@@ -206,15 +210,20 @@ def time_sleep(seconds):
 
 
 def _usd_gtq_rates():
-    if not frappe.db.table_exists("Currency Exchange GTQ"):
-        return {}
-    rows = frappe.db.sql(
-        """SELECT `date` AS rate_date, exchange_rate
-        FROM `tabCurrency Exchange GTQ`
-        WHERE from_currency = 'USD' AND to_currency = 'GTQ'
-        ORDER BY `date` ASC"""
-    )
-    return {frappe.utils.getdate(day): rate for day, rate in rows}
+    """USD to GTQ venta. Currency Exchange GTQ wins; standard Currency Exchange fills gaps."""
+    rates = {}
+    for doctype in ("Currency Exchange", "Currency Exchange GTQ"):
+        if not frappe.db.table_exists(doctype):
+            continue
+        rows = frappe.db.sql(
+            """SELECT `date` AS rate_date, exchange_rate
+            FROM `tab{0}`
+            WHERE from_currency = 'USD' AND to_currency = 'GTQ'
+            ORDER BY `date` ASC""".format(doctype)
+        )
+        for day, rate in rows:
+            rates[frappe.utils.getdate(day)] = rate
+    return rates
 
 
 def _asof(rates, day):
