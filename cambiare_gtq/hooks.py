@@ -13,6 +13,18 @@ app_color = "#27AE60"
 app_email = "m.monroyc22@gmail.com"
 app_license = "GNU General Public License v3.0"
 
+# Ignored on v13. v14 and later refuse to install without ERPNext,
+# because the rates are written to Currency Exchange.
+required_apps = ["erpnext"]
+
+add_to_apps_screen = [
+    {
+        "name": "cambiare_gtq",
+        "title": "Cambiare GTQ",
+        "route": "/app/cambiare",
+    }
+]
+
 # This needs to be enabled and bench restarted before running bench export-fixtures such that the Custom Fields listed below can be exported.
 fixtures = fill_fixtures()
 # [
@@ -43,11 +55,18 @@ fixtures = fill_fixtures()
 # Includes in <head>
 # ------------------
 
+# v13 reads `jenv` ("name:dotted.path"). v14 and later read `jinja`.
 jenv = {
     "methods": [
-        'test1:cambiare_gtq.test1',
-        'currency_in_words:cambiare_gtq.currency_in_words',
-        'currency_in_words_hundred_fractions:cambiare_gtq.currency_in_words_hundred_fractions',
+        "test1:cambiare_gtq.test1",
+        "currency_in_words:cambiare_gtq.currency_in_words",
+        "currency_in_words_hundred_fractions:cambiare_gtq.currency_in_words_hundred_fractions",
+    ]
+}
+
+jinja = {
+    "methods": [
+        "cambiare_gtq.jinja_methods",
     ]
 }
 
@@ -93,7 +112,9 @@ jenv = {
 # ------------
 
 # before_install = "cambiare_gtq.install.before_install"
-# after_install = "cambiare_gtq.install.after_install"
+after_install = "cambiare_gtq.install.after_install"
+after_sync = "cambiare_gtq.install.after_sync"
+after_migrate = "cambiare_gtq.install.after_migrate"
 
 # Desk Notifications
 # ------------------
@@ -129,30 +150,15 @@ jenv = {
 # ---------------
 
 scheduler_events = {
-    # Se ejecuta cada 4 minuts
-    # "all": [
-    # 	"cambiare_gtq.tasks.all"
-    # ],
-    # Se ejecuta cada dia 00:00
     "daily": [
         "cambiare_gtq.task.daily"
     ],
-    # Se ejecuta a cada hora
     "hourly": [
         "cambiare_gtq.task.hourly"
     ],
-    # Cron linux especificacion freq
-    # "cron": {
-    # 	# Cada minuto
-    # 	"0/01 * * * *": [
-    # 		"cambiare_gtq.task.test"
-    # 	]
-    # },
-    # Se ejecuta acada semana
     "weekly": [
         "cambiare_gtq.task.weekly"
     ],
-    # # Se ejecuta cada mes
     "monthly": [
         "cambiare_gtq.task.monthly"
     ]

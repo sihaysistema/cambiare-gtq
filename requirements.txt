@@ -1,4 +1,2 @@
-frappe
-pandas
-xmltodict
-numinwords
+zeep>=4.2.1,<5
+numinwords>=0.5.10
