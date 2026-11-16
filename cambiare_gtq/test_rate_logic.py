@@ -242,6 +242,27 @@ class TestCatalogAndLegacyValues(unittest.TestCase):
         self.assertEqual(rate_logic.iso_from_option("18 - Mexican Pesos - MXN"), "MXN")
         self.assertEqual(rate_logic.variable_from_option("24 - Euro - EUR"), 24)
 
+    def test_validity_custom_fields_are_not_shipped(self):
+        path = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)),
+            "fixtures",
+            "custom_field.json",
+        )
+        with open(path, "r") as handle:
+            rows = json.load(handle)
+        names = [row.get("name") for row in rows]
+        self.assertNotIn("Currency Exchange-valid_from", names)
+        self.assertNotIn("Currency Exchange-valid_to", names)
+        self.assertNotIn("Currency Exchange-validity_date_ranges", names)
+        self.assertIn("Currency-currency_textual_name", names)
+        patches = os.path.join(os.path.dirname(os.path.abspath(__file__)), "patches.txt")
+        with open(patches, "r") as handle:
+            patch_text = handle.read()
+        self.assertIn(
+            "cambiare_gtq.patches.v1_5.remove_currency_exchange_validity_fields",
+            patch_text,
+        )
+
     def test_configuration_doctype_is_english(self):
         path = os.path.join(
             os.path.dirname(os.path.abspath(__file__)),
