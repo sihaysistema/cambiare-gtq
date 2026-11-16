@@ -6,6 +6,7 @@ include *.py
 include *.txt
 recursive-include cambiare_gtq *.css
 recursive-include cambiare_gtq *.csv
+recursive-include cambiare_gtq *.gz
 recursive-include cambiare_gtq *.html
 recursive-include cambiare_gtq *.ico
 recursive-include cambiare_gtq *.js

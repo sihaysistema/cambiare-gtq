@@ -12,18 +12,18 @@ def get_data():
                 {
                     "type": "doctype",
                     "name": "Configuration Cambiare",
-                    "description": _("Configuracion"),
+                    "description": _("Exchange rate settings"),
                     "onboard": 1,
                 }
             ]
         },
         {
-            "label": _("Registro Consultas Tipo Cambio"),
+            "label": _("Exchange Rate Records"),
             "items": [
                 {
                     "type": "doctype",
                     "name": "Currency Exchange GTQ",
-                    "description": _("Encuentre todas las consultas registradas al banco de GT"),
+                    "description": _("Rates fetched from Banco de Guatemala"),
                     "onboard": 1,
                 }
             ]
@@ -34,13 +34,13 @@ def get_data():
                 {
                     "type": "doctype",
                     "name": "Cambiare Cheque Print Set",
-                    "description": _("Impresora para cheques"),
+                    "description": _("Cheque print settings"),
                     "onboard": 1,
                 },
                 {
                     "type": "doctype",
                     "name": "Batch Check Print",
-                    "description": _("Generador lotes para cheques"),
+                    "description": _("Print cheques in a batch"),
                     "onboard": 1,
                 }
             ]
