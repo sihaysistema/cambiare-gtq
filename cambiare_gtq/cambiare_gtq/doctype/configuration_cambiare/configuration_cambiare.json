@@ -5,41 +5,41 @@
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
-  "frecuencia",
-  "desactivar_consultas",
-  "monedas_disponibles_section",
-  "monedas"
+  "frequency",
+  "disable_queries",
+  "available_currencies_section",
+  "currencies"
  ],
  "fields": [
   {
-   "fieldname": "frecuencia",
+   "fieldname": "frequency",
    "fieldtype": "Select",
    "in_list_view": 1,
-   "label": "Frecuencia consulta moneda",
-   "options": "\nCada Hora\nCada Dia\nCada Semana\nCada Mes",
+   "label": "Query Frequency",
+   "options": "\nHourly\nDaily\nWeekly\nMonthly",
    "reqd": 1
   },
   {
    "default": "0",
-   "fieldname": "desactivar_consultas",
+   "fieldname": "disable_queries",
    "fieldtype": "Check",
-   "label": "Desactivar consultas"
+   "label": "Disable Queries"
   },
   {
-   "fieldname": "monedas_disponibles_section",
+   "fieldname": "available_currencies_section",
    "fieldtype": "Section Break",
-   "label": "Monedas Disponibles"
+   "label": "Available Currencies"
   },
   {
-   "fieldname": "monedas",
+   "fieldname": "currencies",
    "fieldtype": "Table",
-   "label": "Monedas",
+   "label": "Currencies",
    "options": "Available Currencies"
   }
  ],
  "issingle": 1,
  "links": [],
- "modified": "2022-11-02 20:01:27.465535",
+ "modified": "2026-11-16 00:00:00.000000",
  "modified_by": "Administrator",
  "module": "Cambiare GTQ",
  "name": "Configuration Cambiare",
