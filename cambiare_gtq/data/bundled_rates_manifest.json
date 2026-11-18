@@ -1,0 +1,375 @@
+{
+ "banguat_closed_through": "2026-11-15",
+ "generated": "2026-11-16",
+ "banguat_currencies": [
+  {
+   "variable": 2,
+   "code": "USD",
+   "name": "US Dollar",
+   "banguat_name": "Dólares de EE.UU.",
+   "first": "1989-11-06",
+   "last": "2026-11-15",
+   "rows": 13519
+  },
+  {
+   "variable": 3,
+   "code": "JPY",
+   "name": "Japanese Yen",
+   "banguat_name": "Yenes Japoneses",
+   "first": "1989-11-06",
+   "last": "2026-11-13",
+   "rows": 9293
+  },
+  {
+   "variable": 4,
+   "code": "BEF",
+   "name": "Belgian Franc",
+   "banguat_name": "Francos Belgas",
+   "first": "1989-11-06",
+   "last": "2001-12-31",
+   "rows": 2971
+  },
+  {
+   "variable": 5,
+   "code": "CHF",
+   "name": "Swiss Franc",
+   "banguat_name": "Francos Suizos",
+   "first": "1989-11-06",
+   "last": "2026-11-13",
+   "rows": 9293
+  },
+  {
+   "variable": 6,
+   "code": "FRF",
+   "name": "French Franc",
+   "banguat_name": "Francos Franceses",
+   "first": "1989-11-06",
+   "last": "2001-12-31",
+   "rows": 2974
+  },
+  {
+   "variable": 7,
+   "code": "CAD",
+   "name": "Canadian Dollar",
+   "banguat_name": "Dólares Canadienses",
+   "first": "1989-11-06",
+   "last": "2026-11-13",
+   "rows": 9301
+  },
+  {
+   "variable": 8,
+   "code": "ITL",
+   "name": "Italian Lira",
+   "banguat_name": "Liras Italianas",
+   "first": "1989-11-06",
+   "last": "2001-12-31",
+   "rows": 2974
+  },
+  {
+   "variable": 9,
+   "code": "GBP",
+   "name": "Pound Sterling",
+   "banguat_name": "Libras Esterlinas",
+   "first": "1989-11-06",
+   "last": "2026-11-13",
+   "rows": 9299
+  },
+  {
+   "variable": 11,
+   "code": "DEM",
+   "name": "German Mark",
+   "banguat_name": "Marcos Alemanes",
+   "first": "1989-11-06",
+   "last": "2001-12-31",
+   "rows": 3015
+  },
+  {
+   "variable": 12,
+   "code": "ESP",
+   "name": "Spanish Peseta",
+   "banguat_name": "Pesetas Españolas",
+   "first": "1989-11-06",
+   "last": "2001-12-31",
+   "rows": 2973
+  },
+  {
+   "variable": 13,
+   "code": "ATS",
+   "name": "Austrian Schilling",
+   "banguat_name": "Chelines Austríacos",
+   "first": "1989-11-06",
+   "last": "2001-12-31",
+   "rows": 2973
+  },
+  {
+   "variable": 14,
+   "code": "NLG",
+   "name": "Dutch Guilder",
+   "banguat_name": "Florines Holandeses",
+   "first": "1989-11-06",
+   "last": "2001-12-31",
+   "rows": 2972
+  },
+  {
+   "variable": 15,
+   "code": "SEK",
+   "name": "Swedish Krona",
+   "banguat_name": "Coronas Suecas",
+   "first": "1989-11-06",
+   "last": "2026-11-13",
+   "rows": 9292
+  },
+  {
+   "variable": 16,
+   "code": "CRC",
+   "name": "Costa Rican Colon",
+   "banguat_name": "Colones Costarricenses",
+   "first": "1999-03-22",
+   "last": "2026-11-13",
+   "rows": 6786
+  },
+  {
+   "variable": 17,
+   "code": "SVC",
+   "name": "Salvadoran Colon",
+   "banguat_name": "Colones Salvadoreños",
+   "first": "1999-03-22",
+   "last": "2026-11-13",
+   "rows": 4994
+  },
+  {
+   "variable": 18,
+   "code": "MXN",
+   "name": "Mexican Peso",
+   "banguat_name": "Pesos Mexicanos",
+   "first": "1989-11-08",
+   "last": "2026-11-13",
+   "rows": 9279
+  },
+  {
+   "variable": 19,
+   "code": "HNL",
+   "name": "Honduran Lempira",
+   "banguat_name": "Lempiras Hondureños",
+   "first": "1999-03-22",
+   "last": "2026-11-13",
+   "rows": 6739
+  },
+  {
+   "variable": 21,
+   "code": "NIO",
+   "name": "Nicaraguan Cordoba",
+   "banguat_name": "Córdobas Nicaragüenses",
+   "first": "1995-10-13",
+   "last": "2026-11-13",
+   "rows": 6775
+  },
+  {
+   "variable": 22,
+   "code": "VEB",
+   "name": "Venezuelan Bolivar",
+   "banguat_name": "Bolivares Venezolanos",
+   "first": "1989-11-06",
+   "last": "2007-12-31",
+   "rows": 4259
+  },
+  {
+   "variable": 23,
+   "code": "DKK",
+   "name": "Danish Krone",
+   "banguat_name": "Corona Danesa",
+   "first": "1997-01-02",
+   "last": "2026-11-13",
+   "rows": 7523
+  },
+  {
+   "variable": 24,
+   "code": "EUR",
+   "name": "Euro",
+   "banguat_name": "Euro",
+   "first": "1989-11-06",
+   "last": "2026-11-13",
+   "rows": 9258
+  },
+  {
+   "variable": 25,
+   "code": "NOK",
+   "name": "Norwegian Krone",
+   "banguat_name": "Corona Noruega",
+   "first": "1997-01-02",
+   "last": "2026-11-13",
+   "rows": 7518
+  },
+  {
+   "variable": 26,
+   "code": "XDR",
+   "name": "Special Drawing Right",
+   "banguat_name": "DEG",
+   "first": "1989-11-06",
+   "last": "2026-11-13",
+   "rows": 8406
+  },
+  {
+   "variable": 27,
+   "code": "PTE",
+   "name": "Portuguese Escudo",
+   "banguat_name": "Escudo Portugués",
+   "first": "1997-01-02",
+   "last": "2001-12-31",
+   "rows": 1199
+  },
+  {
+   "variable": 28,
+   "code": "IDB",
+   "name": "IDB Unit of Account",
+   "banguat_name": "Unidad de Cuenta del BID",
+   "first": null,
+   "last": null,
+   "rows": 0
+  },
+  {
+   "variable": 29,
+   "code": "ARS",
+   "name": "Argentine Peso",
+   "banguat_name": "Peso Argentina",
+   "first": "2006-06-28",
+   "last": "2026-11-13",
+   "rows": 5162
+  },
+  {
+   "variable": 30,
+   "code": "BRL",
+   "name": "Brazilian Real",
+   "banguat_name": "Real Brasileño",
+   "first": "2006-06-28",
+   "last": "2026-11-13",
+   "rows": 5170
+  },
+  {
+   "variable": 31,
+   "code": "KRW",
+   "name": "Korean Won",
+   "banguat_name": "Won Coreano",
+   "first": "2006-06-28",
+   "last": "2026-11-13",
+   "rows": 5180
+  },
+  {
+   "variable": 32,
+   "code": "HKD",
+   "name": "Hong Kong Dollar",
+   "banguat_name": "Dólar Hong Kong",
+   "first": "2006-06-28",
+   "last": "2026-11-13",
+   "rows": 5198
+  },
+  {
+   "variable": 33,
+   "code": "TWD",
+   "name": "New Taiwan Dollar",
+   "banguat_name": "Dólar Taiwán",
+   "first": "2006-06-28",
+   "last": "2026-11-13",
+   "rows": 5187
+  },
+  {
+   "variable": 34,
+   "code": "CNY",
+   "name": "Chinese Yuan",
+   "banguat_name": "Yuan China",
+   "first": "2006-06-28",
+   "last": "2026-11-13",
+   "rows": 5184
+  },
+  {
+   "variable": 35,
+   "code": "PKR",
+   "name": "Pakistani Rupee",
+   "banguat_name": "Rupia Pakistán",
+   "first": "2006-06-28",
+   "last": "2026-11-13",
+   "rows": 5145
+  },
+  {
+   "variable": 36,
+   "code": "INR",
+   "name": "Indian Rupee",
+   "banguat_name": "Rupee India",
+   "first": "2006-07-06",
+   "last": "2026-11-13",
+   "rows": 5161
+  },
+  {
+   "variable": 37,
+   "code": "VEF",
+   "name": "Venezuelan Bolivar Fuerte",
+   "banguat_name": "Bolivar Fuerte",
+   "first": "2008-01-02",
+   "last": "2019-08-28",
+   "rows": 2691
+  },
+  {
+   "variable": 38,
+   "code": "COP",
+   "name": "Colombian Peso",
+   "banguat_name": "Peso Colombiano",
+   "first": "2010-02-10",
+   "last": "2026-11-13",
+   "rows": 4253
+  },
+  {
+   "variable": 39,
+   "code": "DOP",
+   "name": "Dominican Peso",
+   "banguat_name": "Peso Dominicano",
+   "first": "2011-03-03",
+   "last": "2026-11-13",
+   "rows": 4021
+  },
+  {
+   "variable": 40,
+   "code": "MYR",
+   "name": "Malaysian Ringgit",
+   "banguat_name": "Ringgit Malasia",
+   "first": "2015-10-20",
+   "last": "2026-11-13",
+   "rows": 2719
+  },
+  {
+   "variable": 41,
+   "code": "VES",
+   "name": "Venezuelan Sovereign Bolivar",
+   "banguat_name": "Bolívar Soberano",
+   "first": "2018-08-21",
+   "last": "2026-11-13",
+   "rows": 2066
+  },
+  {
+   "variable": 42,
+   "code": "PLN",
+   "name": "Polish Zloty",
+   "banguat_name": "Zloty",
+   "first": "2019-02-05",
+   "last": "2026-11-13",
+   "rows": 2003
+  }
+ ],
+ "banguat_currency_count": 39,
+ "published_variables_including_gtq": 40,
+ "skipped_quotes_before_any_usd_rate": 3331,
+ "btc": {
+  "code": "BTC",
+  "source": "Precyos",
+  "item_code": "64.15.15.05.001",
+  "first": "2010-08-18",
+  "last": "2026-10-23",
+  "days": 5911,
+  "ignored_dates": [
+   "2009-10-05",
+   "2010-05-22"
+  ]
+ },
+ "rows": 224547,
+ "raw_csv_bytes": 8847474,
+ "gzip_bytes": 1782833
+}
