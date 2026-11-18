@@ -70,10 +70,14 @@ class FrappeRateBook(object):
                 found.append(doctype)
         return found
 
-    def add(self, rate_date, from_currency, to_currency, rate):
+    def add(self, rate_date, from_currency, to_currency, rate, published=None):
         created = 0
         skipped = 0
         rate_date = parse_date(rate_date)
+        from cambiare_gtq.series_math import rate_timestamp_utc, timestamp_for_column
+        stamp = timestamp_for_column(
+            rate_timestamp_utc(rate_date, from_currency, to_currency, published)
+        )
         for doctype in self.doctypes():
             if _exists(doctype, rate_date, from_currency, to_currency):
                 skipped += 1
@@ -87,6 +91,8 @@ class FrappeRateBook(object):
             doc.for_selling = 1
             if frappe.get_meta(doctype).has_field("rate_source"):
                 doc.rate_source = "Banguat"
+            if doctype == "Currency Exchange GTQ" and frappe.get_meta(doctype).has_field("rate_timestamp_utc"):
+                doc.rate_timestamp_utc = stamp
             doc.insert(ignore_permissions=True)
             # The column can exist before meta notices it. A pull from this
             # app always records Banguat; a hand-entered row never comes here.
@@ -95,6 +101,12 @@ class FrappeRateBook(object):
                     """UPDATE `tab{doctype}` SET rate_source = %s
                     WHERE name = %s AND IFNULL(rate_source, '') = ''""".format(doctype=doctype),
                     ("Banguat", doc.name),
+                )
+            if doctype == "Currency Exchange GTQ" and frappe.db.has_column(doctype, "rate_timestamp_utc"):
+                frappe.db.sql(
+                    """UPDATE `tab{doctype}` SET rate_timestamp_utc = %s
+                    WHERE name = %s AND rate_timestamp_utc IS NULL""".format(doctype=doctype),
+                    (stamp, doc.name),
                 )
             created += 1
         if not self.doctypes():
@@ -105,13 +117,17 @@ class FrappeRateBook(object):
         """Prefer Currency Exchange GTQ when both doctypes have the same date."""
         by_date = {}
         for doctype in self.doctypes():
-            source_sql = ", rate_source" if frappe.db.has_column(doctype, "rate_source") else ""
+            extra = ""
+            if frappe.db.has_column(doctype, "rate_source"):
+                extra += ", rate_source"
+            if doctype == "Currency Exchange GTQ" and frappe.db.has_column(doctype, "rate_timestamp_utc"):
+                extra += ", rate_timestamp_utc"
             rows = frappe.db.sql(
-                """SELECT `date` AS rate_date, exchange_rate {source_sql}
+                """SELECT `date` AS rate_date, exchange_rate {extra}
                 FROM `tab{doctype}`
                 WHERE from_currency = %s AND to_currency = %s
                 ORDER BY `date` ASC, modified DESC""".format(
-                    doctype=doctype, source_sql=source_sql
+                    doctype=doctype, extra=extra
                 ),
                 (from_currency, to_currency),
                 as_dict=True,
@@ -123,6 +139,7 @@ class FrappeRateBook(object):
                         "date": key,
                         "rate": float(row.exchange_rate),
                         "rate_source": row.get("rate_source"),
+                        "rate_timestamp_utc": row.get("rate_timestamp_utc"),
                     }
         return list(by_date.values())
 

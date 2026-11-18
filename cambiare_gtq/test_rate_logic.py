@@ -299,6 +299,22 @@ class TestCatalogAndLegacyValues(unittest.TestCase):
             "5 - Swiss Francs - CHF",
         )
 
+    def test_parent_validate_fills_child_code_without_child_validate(self):
+        class Row(object):
+            def __init__(self, currency):
+                self.currency = currency
+                self.code = ""
+
+        row = Row("24 - Euro - EUR")
+        blank = Row("")
+        rate_logic.fill_currency_codes([row, blank, {"currency": "5 - Swiss Francs - CHF"}])
+        self.assertEqual(row.code, "EUR")
+        self.assertEqual(blank.code, "")
+        self.assertEqual(
+            rate_logic.fill_currency_codes([{"moneda": "9 - Pounds Sterling - GBP"}])[0]["code"],
+            "GBP",
+        )
+
     def test_validity_custom_fields_are_not_shipped(self):
         path = os.path.join(
             os.path.dirname(os.path.abspath(__file__)),
@@ -323,6 +339,18 @@ class TestCatalogAndLegacyValues(unittest.TestCase):
             "cambiare_gtq.patches.v1_5.remap_banguat_currencies",
             patch_text,
         )
+        self.assertIn(
+            "cambiare_gtq.patches.v1_5.backfill_currency_exchange_gtq",
+            patch_text,
+        )
+        self.assertIn(
+            "cambiare_gtq.patches.v1_5.realign_bisq_rates",
+            patch_text,
+        )
+        self.assertIn(
+            "cambiare_gtq.patches.v1_5.backfill_rate_timestamps",
+            patch_text,
+        )
 
     def test_configuration_doctype_is_english(self):
         path = os.path.join(
@@ -341,6 +369,19 @@ class TestCatalogAndLegacyValues(unittest.TestCase):
         self.assertIn("\nHourly\nDaily\nWeekly\nMonthly", fields["frequency"]["options"])
         self.assertEqual(fields["disable_queries"]["label"], "Disable Queries")
         self.assertEqual(fields["currencies"]["label"], "Currencies")
+        gtq_path = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)),
+            "cambiare_gtq",
+            "doctype",
+            "currency_exchange_gtq",
+            "currency_exchange_gtq.json",
+        )
+        with open(gtq_path, "r") as handle:
+            gtq = json.load(handle)
+        stamp = [item for item in gtq["fields"] if item["fieldname"] == "rate_timestamp_utc"][0]
+        self.assertEqual(stamp["fieldtype"], "Datetime")
+        self.assertEqual(stamp["label"], "Rate Timestamp (UTC)")
+        self.assertEqual(stamp["read_only"], 1)
         self.assertNotIn("Cada Hora", json.dumps(doc))
 
 
@@ -388,16 +429,37 @@ class TestSeriesMath(unittest.TestCase):
         # 1 EUR = 8 GTQ, 1 BTC = 16 GTQ => 1 EUR = 0.5 BTC
         self.assertEqual(series_math.bridge_rate("8", "16"), series_math.Decimal("0.5"))
 
-    def test_bisq_groups_the_utc_day_before_the_next_midnight(self):
-        # 2024-01-01 00:30 UTC and 2024-01-01 23:00 UTC belong to 2024-01-01.
+    def test_bisq_median_is_dated_the_precyos_way(self):
+        # Trades during 2024-01-01 UTC are Precyos date 2024-01-02.
+        # A trade at 2024-01-02 00:00 UTC belongs to 2024-01-03.
         trades = [
             {"trade_date": 1704069000000, "price": "100"},
             {"trade_date": 1704150000000, "price": "300"},
             {"trade_date": 1704153600000, "price": "900"},
         ]
         grouped = series_math.trades_by_utc_day(trades)
-        self.assertEqual(grouped[datetime.date(2024, 1, 1)], 200)
-        self.assertEqual(grouped[datetime.date(2024, 1, 2)], 900)
+        self.assertNotIn(datetime.date(2024, 1, 1), grouped)
+        self.assertEqual(grouped[datetime.date(2024, 1, 2)], 200)
+        self.assertEqual(grouped[datetime.date(2024, 1, 3)], 900)
+        start, end = series_math.bisq_window(datetime.date(2024, 1, 2))
+        self.assertEqual(start, series_math._utc_midnight(datetime.date(2024, 1, 1)))
+        self.assertEqual(end, series_math._utc_midnight(datetime.date(2024, 1, 2)) - 1)
+
+    def test_rate_timestamps_are_utc(self):
+        bitcoin = series_math.rate_timestamp_utc("2026-11-16", "BTC", "USD")
+        self.assertEqual(series_math.iso_utc_z(bitcoin), "2026-11-16T00:00:00Z")
+        banguat = series_math.rate_timestamp_utc("2026-11-15", "USD", "GTQ")
+        self.assertEqual(series_math.iso_utc_z(banguat), "2026-11-15T06:00:00Z")
+        timed = series_math.rate_timestamp_utc(
+            "2026-11-15", "USD", "GTQ", published="15/11/2026 15:30:00"
+        )
+        self.assertEqual(series_math.iso_utc_z(timed), "2026-11-15T21:30:00Z")
+        late = series_math.rate_timestamp_utc(
+            "2026-11-15", "EUR", "GTQ", published="15/11/2026 20:00:00"
+        )
+        self.assertEqual(series_math.iso_utc_z(late), "2026-11-16T02:00:00Z")
+        # A Banguat row read back from MariaDB still serializes with Z.
+        self.assertEqual(series_math.iso_utc_z("2026-11-15 06:00:00"), "2026-11-15T06:00:00Z")
 
     def test_bisq_paging_stops_between_pages(self):
         pages = [
@@ -416,6 +478,69 @@ class TestSeriesMath(unittest.TestCase):
         )
         self.assertEqual(len(collected), 2)
         self.assertEqual(pauses, [])
+
+    def test_default_window_reaches_back_to_the_bundle_gap(self):
+        end = datetime.date(2026, 11, 16)
+        start = series_math.default_refresh_start(end, [], "2026-10-23")
+        self.assertEqual(start, datetime.date(2026, 10, 24))
+        stored = [datetime.date(2026, 10, 24) + datetime.timedelta(days=offset) for offset in range(10)]
+        # Oct 24 through Nov 2 are stored, so the window is the last 14 days.
+        self.assertEqual(
+            series_math.default_refresh_start(end, stored, "2026-10-23"),
+            datetime.date(2026, 11, 3),
+        )
+        # A hole on Oct 30 is included even when later gap days exist.
+        hole = [day for day in stored if day != datetime.date(2026, 10, 30)]
+        self.assertEqual(
+            series_math.default_refresh_start(end, hole, "2026-10-23"),
+            datetime.date(2026, 10, 30),
+        )
+
+    def test_bisq_is_requested_once_per_missing_utc_day(self):
+        calls = []
+
+        def fetch(start, end):
+            calls.append((start, end))
+            # Rate date Nov 5 uses trades on Nov 4. Rate date Nov 4 has none.
+            nov4 = series_math._utc_midnight(datetime.date(2026, 11, 4))
+            if start == nov4:
+                return [
+                    {"trade_date": start * 1000 + 60_000, "price": "10"},
+                    {"trade_date": start * 1000 + 120_000, "price": "30"},
+                ]
+            return []
+
+        pauses = []
+        days = [datetime.date(2026, 11, 4), datetime.date(2026, 11, 5)]
+        collected = series_math.collect_bisq_days(fetch, days, lambda: pauses.append(1))
+        self.assertEqual(calls[1][0], series_math._utc_midnight(datetime.date(2026, 11, 4)))
+        self.assertEqual(calls[1][1], series_math._utc_midnight(datetime.date(2026, 11, 5)) - 1)
+        self.assertEqual(len(calls), 2)
+        self.assertEqual(pauses, [1])
+        grouped = series_math.trades_by_utc_day(collected)
+        self.assertNotIn(datetime.date(2026, 11, 4), grouped)
+        self.assertEqual(grouped[datetime.date(2026, 11, 5)], 20)
+        missing = series_math.days_without_precyos(
+            datetime.date(2026, 11, 3),
+            datetime.date(2026, 11, 5),
+            {"2026-11-03"},
+        )
+        self.assertEqual(missing, days)
+
+    def test_bisq_day_pages_when_the_first_page_is_full(self):
+        day = datetime.date(2026, 11, 5)
+        window_start, _window_end = series_math.bisq_window(day)
+        pages = [
+            [{"trade_date": (window_start + index) * 1000, "price": "1"} for index in range(2000)],
+            [{"trade_date": (window_start + 2000) * 1000, "price": "5"}],
+        ]
+
+        def fetch(timestamp_from, timestamp_to):
+            return pages.pop(0) if pages else []
+
+        collected = series_math.collect_bisq_days(fetch, [day], lambda: None)
+        self.assertEqual(len(collected), 2001)
+        self.assertEqual(pages, [])
 
 
 if __name__ == "__main__":

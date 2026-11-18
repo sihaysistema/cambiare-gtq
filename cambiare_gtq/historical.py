@@ -21,10 +21,19 @@ import frappe
 from frappe.utils import now_datetime
 
 from cambiare_gtq.rate_logic import canonical_saved_currency
-from cambiare_gtq.series_math import SOURCE_BANGUAT, decimal_string, quantize_rate
+from cambiare_gtq.series_math import (
+    SOURCE_BANGUAT,
+    decimal_string,
+    quantize_rate,
+    rate_timestamp_utc,
+    timestamp_for_column,
+)
 
 BUNDLE_VERSION = "2026-11-16"
 MARKER = "cambiare_gtq_history_loaded"
+# A finished GTQ load names hundreds of thousands of rows. Fewer than this
+# means the table was missing when the first load ran.
+GTQ_BUNDLE_MIN = 100000
 _DOCTYPES = ("Currency Exchange GTQ", "Currency Exchange")
 
 
@@ -101,11 +110,13 @@ def load_historical_rates(force=False):
     if not os.path.exists(bundle_path()):
         return {"status": "missing_bundle"}
     _ensure_gtq_source_column()
+    _ensure_gtq_timestamp_column()
+    tables = {doctype for doctype in _DOCTYPES if _table_exists(doctype)}
     records = read_bundle()
     created = 0
     skipped = 0
     standard_created = 0
-    present = _existing_pairs()
+    present = _existing_pairs(tables)
     currencies = _currency_names()
     stamp = now_datetime()
     pending = {doctype: [] for doctype in _DOCTYPES}
@@ -123,7 +134,7 @@ def load_historical_rates(force=False):
         )
         for day, fr, to, value, source in (pair, inverse):
             made, skipped_one, std = _queue_pair(
-                pending, present, currencies, stamp, day, fr, to, value, source
+                pending, present, currencies, stamp, day, fr, to, value, source, tables
             )
             created += made
             skipped += skipped_one
@@ -308,12 +319,12 @@ def _needs_stamp(doctype):
     return bool(found)
 
 
-def _queue_pair(pending, present, currencies, stamp, day, fr, to, rate, source):
+def _queue_pair(pending, present, currencies, stamp, day, fr, to, rate, source, tables):
     created = 0
     skipped = 0
     standard = 0
     for doctype, prefix in (("Currency Exchange GTQ", "CEGTQ"), ("Currency Exchange", "CEX")):
-        if not frappe.db.table_exists(doctype):
+        if doctype not in tables:
             continue
         if doctype == "Currency Exchange" and (fr not in currencies or to not in currencies):
             continue
@@ -337,6 +348,8 @@ def _row(name, stamp, day, fr, to, rate, source, doctype):
     base = [name, stamp, stamp, "Administrator", "Administrator", 0, 0, day, fr, to, decimal_string(rate), 1, 1]
     if _has_source(doctype):
         base.append(source or SOURCE_BANGUAT)
+    if _has_timestamp(doctype):
+        base.append(timestamp_for_column(rate_timestamp_utc(day, fr, to)))
     return tuple(base)
 
 
@@ -349,6 +362,8 @@ def _flush(doctype, rows):
     ]
     if _has_source(doctype):
         fields.append("rate_source")
+    if _has_timestamp(doctype):
+        fields.append("rate_timestamp_utc")
     width = len(fields)
     for start in range(0, len(rows), 400):
         chunk = rows[start:start + 400]
@@ -363,10 +378,10 @@ def _flush(doctype, rows):
         )
 
 
-def _existing_pairs():
+def _existing_pairs(tables):
     found = set()
     for doctype in _DOCTYPES:
-        if not frappe.db.table_exists(doctype):
+        if doctype not in tables:
             continue
         rows = frappe.db.sql(
             "SELECT `date`, from_currency, to_currency FROM `tab{0}`".format(doctype)
@@ -383,7 +398,7 @@ def _currency_names():
 
 
 def _has_source(doctype):
-    return frappe.db.table_exists(doctype) and frappe.db.has_column(doctype, "rate_source")
+    return _table_exists(doctype) and frappe.db.has_column(doctype, "rate_source")
 
 
 def _has_field(doctype, fieldname):
@@ -391,6 +406,43 @@ def _has_field(doctype, fieldname):
         return frappe.get_meta(doctype).has_field(fieldname)
     except Exception:
         return False
+
+
+def _has_timestamp(doctype):
+    return doctype == "Currency Exchange GTQ" and frappe.db.has_column(doctype, "rate_timestamp_utc")
+
+
+def backfill_rate_timestamps():
+    """Fill empty UTC stamps. Bitcoin is 00:00 UTC. Banguat is 06:00 UTC."""
+    doctype = "Currency Exchange GTQ"
+    if not _table_exists(doctype):
+        return 0
+    _ensure_gtq_timestamp_column()
+    if not frappe.db.has_column(doctype, "rate_timestamp_utc"):
+        return 0
+    frappe.db.sql(
+        """UPDATE `tabCurrency Exchange GTQ`
+        SET rate_timestamp_utc = TIMESTAMP(`date`, '00:00:00')
+        WHERE (from_currency = 'BTC' OR to_currency = 'BTC')
+        AND rate_timestamp_utc IS NULL"""
+    )
+    frappe.db.sql(
+        """UPDATE `tabCurrency Exchange GTQ`
+        SET rate_timestamp_utc = TIMESTAMP(`date`, '06:00:00')
+        WHERE IFNULL(from_currency, '') != 'BTC'
+        AND IFNULL(to_currency, '') != 'BTC'
+        AND rate_timestamp_utc IS NULL"""
+    )
+    return 1
+
+
+def _ensure_gtq_timestamp_column():
+    doctype = "Currency Exchange GTQ"
+    if _table_exists(doctype) and not frappe.db.has_column(doctype, "rate_timestamp_utc"):
+        frappe.db.sql_ddl(
+            "ALTER TABLE `tabCurrency Exchange GTQ` ADD COLUMN `rate_timestamp_utc` datetime"
+        )
+        _forget(doctype)
 
 
 def _ensure_gtq_source_column():
@@ -416,8 +468,44 @@ def _forget(doctype):
             pass
 
 
+def _forget_table_cache():
+    """Drop the cached table list. install-app fills it before this doctype exists."""
+    cache = frappe.cache()
+    for name in ("delete_value", "delete_key"):
+        method = getattr(cache, name, None)
+        if method is None:
+            continue
+        try:
+            method("db_tables")
+        except Exception:
+            pass
+
+
+def _table_exists(doctype):
+    """SHOW TABLES sees a table created earlier in this request. The cache does not."""
+    _forget_table_cache()
+    rows = frappe.db.sql("SHOW TABLES LIKE %s", ("tab" + doctype,))
+    return bool(rows)
+
+
+def _gtq_bundle_present():
+    if not _table_exists("Currency Exchange GTQ"):
+        return False
+    count = frappe.db.sql(
+        "SELECT COUNT(*) FROM `tabCurrency Exchange GTQ` WHERE name LIKE 'CEGTQ-%'"
+    )[0][0]
+    return count >= GTQ_BUNDLE_MIN
+
+
 def _history_is_complete():
-    """Wait until the standard doctype can store a source before treating the load as done."""
-    if not frappe.db.table_exists("Currency Exchange"):
-        return frappe.db.table_exists("Currency Exchange GTQ")
-    return _has_source("Currency Exchange")
+    """The load is done only after Currency Exchange GTQ holds the bundle.
+
+    install-app on an existing site syncs the new table during the request,
+    but the cached table list still omits it. The first load then fills only
+    standard Currency Exchange and would otherwise be treated as finished.
+    """
+    if not _table_exists("Currency Exchange GTQ") or not _gtq_bundle_present():
+        return False
+    if _table_exists("Currency Exchange") and not _has_source("Currency Exchange"):
+        return False
+    return True

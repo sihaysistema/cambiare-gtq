@@ -65,6 +65,7 @@ def _daily(from_currency, to_currency, day, fetch_if_missing):
                 "rate_date": day.isoformat(),
                 "source": "cross",
                 "rate_source": _join_sources(left, right),
+                "rate_timestamp_utc": _cross_stamp(left, right),
                 "via": "GTQ",
                 "legs": [_public_leg(left), _public_leg(right)],
             }
@@ -93,6 +94,7 @@ def _average(from_currency, to_currency, start, end, fetch_if_missing):
     if from_currency != "GTQ" and to_currency != "GTQ":
         rates = []
         sources = []
+        stamps = []
         day = start
         while day <= end:
             try:
@@ -102,6 +104,8 @@ def _average(from_currency, to_currency, start, end, fetch_if_missing):
             if one:
                 rates.append(Decimal(str(one["rate"])))
                 sources.append(one.get("source"))
+                if one.get("rate_timestamp_utc"):
+                    stamps.append(one["rate_timestamp_utc"])
             day += datetime.timedelta(days=1)
         if not rates:
             frappe.throw(
@@ -110,7 +114,7 @@ def _average(from_currency, to_currency, start, end, fetch_if_missing):
                 )
             )
         average = sum(rates) / Decimal(len(rates))
-        return {
+        payload = {
             "rate": average,
             "rate_date": start.isoformat(),
             "covered_from": start.isoformat(),
@@ -118,8 +122,12 @@ def _average(from_currency, to_currency, start, end, fetch_if_missing):
             "days": len(rates),
             "source": "cross" if "cross" in sources else sources[0],
         }
+        if stamps:
+            payload["rate_timestamp_utc_from"] = stamps[0]
+            payload["rate_timestamp_utc_to"] = stamps[-1]
+        return payload
     result = get_average_rate(from_currency, to_currency, start, end, fetch_if_missing)
-    return {
+    payload = {
         "rate": Decimal(str(result["average"])),
         "rate_date": result.get("covered_from") or result["from_date"],
         "covered_from": result["from_date"],
@@ -127,6 +135,19 @@ def _average(from_currency, to_currency, start, end, fetch_if_missing):
         "days": result["days"],
         "source": "direct",
     }
+    if result.get("rate_timestamp_utc_from"):
+        payload["rate_timestamp_utc_from"] = result["rate_timestamp_utc_from"]
+        payload["rate_timestamp_utc_to"] = result.get("rate_timestamp_utc_to")
+    return payload
+
+
+def _cross_stamp(left, right):
+    stamps = [value for value in (left.get("rate_timestamp_utc"), right.get("rate_timestamp_utc")) if value]
+    if not stamps:
+        return None
+    if stamps[0] == stamps[-1]:
+        return stamps[0]
+    return stamps[0] + " / " + stamps[-1]
 
 
 def _safe_closing(from_currency, to_currency, day, fetch_if_missing):
@@ -149,6 +170,8 @@ def _pack_daily(direct, source):
     }
     if direct.get("rate_source"):
         packed["rate_source"] = direct["rate_source"]
+    if direct.get("rate_timestamp_utc"):
+        packed["rate_timestamp_utc"] = direct["rate_timestamp_utc"]
     return packed
 
 
@@ -159,6 +182,7 @@ def _public_leg(leg):
         "rate": decimal_string(leg["rate"]),
         "rate_date": leg["rate_date"],
         "rate_source": leg.get("rate_source"),
+        "rate_timestamp_utc": leg.get("rate_timestamp_utc"),
     }
 
 

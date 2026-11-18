@@ -19,6 +19,9 @@ PRECYOS_URL = (
 BISQ_URL = "https://markets.bisq.network/api/trades"
 IGNORED_PRECYOS_DATES = frozenset(["2009-10-05", "2010-05-22"])
 BTC_HISTORY_START = "2010-08-18"
+# Last Precyos day shipped in bundled_rates. The refresh window starts the
+# next day until those dates exist in Currency Exchange.
+BUNDLE_BTC_LAST = "2026-10-23"
 SOURCE_BANGUAT = "Banguat"
 SOURCE_PRECYOS = "Precyos"
 SOURCE_BISQ = "Bisq median"
@@ -58,6 +61,15 @@ def utc_day(epoch_ms):
     return stamp.date()
 
 
+def precyos_rate_day(epoch_ms):
+    """Precyos labels date D with the trades in the 24h before 00:00 UTC on D.
+
+    A trade during UTC calendar day D-1 is stored as D. The window is
+    ``[D-1 00:00 UTC, D 00:00 UTC)``.
+    """
+    return utc_day(epoch_ms) + datetime.timedelta(days=1)
+
+
 def precyos_usd_points(points):
     """BTC/USD prints from Precyos, dropping the two isolated pre-history dates."""
     kept = []
@@ -84,6 +96,92 @@ def asof_rate(dated_rates, day):
     return chosen
 
 
+def rate_timestamp_utc(rate_date, from_currency=None, to_currency=None, published=None):
+    """UTC datetime for a stored rate. Naive, meaning UTC.
+
+    Bitcoin (Precyos or Bisq) is date D at 00:00:00 UTC, the close of the
+    previous UTC day. Banguat is the publication date at 00:00 in
+    America/Guatemala, which is 06:00 UTC, unless the bank sent a time.
+    That time is Guatemala local and is converted to UTC.
+    """
+    if "BTC" in (
+        str(from_currency or "").upper(),
+        str(to_currency or "").upper(),
+    ):
+        day = _as_date(rate_date)
+        return datetime.datetime(day.year, day.month, day.day, 0, 0, 0)
+    return _banguat_timestamp_utc(published if published is not None else rate_date)
+
+
+def iso_utc_z(value):
+    """ISO-8601 UTC timestamp with a Z suffix."""
+    if value is None or value == "":
+        return None
+    if isinstance(value, str):
+        text = value.strip().replace(" ", "T")
+        if text.endswith("Z"):
+            return text
+        if len(text) == 16:
+            text += ":00"
+        return text + "Z"
+    return value.strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def timestamp_for_column(value):
+    """Datetime string MariaDB stores, with no timezone suffix."""
+    if value is None:
+        return None
+    if isinstance(value, str):
+        return value.replace("T", " ").replace("Z", "")[:19]
+    return value.strftime("%Y-%m-%d %H:%M:%S")
+
+
+def _as_date(value):
+    if isinstance(value, datetime.datetime):
+        return value.date()
+    if isinstance(value, datetime.date):
+        return value
+    text = str(value).strip()[:10]
+    for fmt in ("%Y-%m-%d", "%d/%m/%Y", "%d-%m-%Y"):
+        try:
+            return datetime.datetime.strptime(text, fmt).date()
+        except ValueError:
+            continue
+    raise ValueError(value)
+
+
+def _banguat_timestamp_utc(value):
+    """Guatemala local publication moment, returned as a naive UTC datetime."""
+    local = _guatemala_local(value)
+    return local + datetime.timedelta(hours=6)
+
+
+def _guatemala_local(value):
+    if isinstance(value, datetime.datetime):
+        if value.hour or value.minute or value.second:
+            return value.replace(tzinfo=None, microsecond=0)
+        return datetime.datetime(value.year, value.month, value.day)
+    if isinstance(value, datetime.date):
+        return datetime.datetime(value.year, value.month, value.day)
+    text = str(value).strip()
+    for fmt in (
+        "%Y-%m-%d %H:%M:%S",
+        "%Y-%m-%dT%H:%M:%S",
+        "%d/%m/%Y %H:%M:%S",
+        "%d/%m/%Y %H:%M",
+        "%Y-%m-%d %H:%M",
+    ):
+        try:
+            parsed = datetime.datetime.strptime(text[:19], fmt)
+        except ValueError:
+            continue
+        if parsed.hour or parsed.minute or parsed.second:
+            return parsed
+        return datetime.datetime(parsed.year, parsed.month, parsed.day)
+    day = _as_date(text)
+    return datetime.datetime(day.year, day.month, day.day)
+
+
 def btc_gtq(btc_usd, usd_gtq):
     """1 BTC in quetzales = BTC/USD times the as-of Banguat venta."""
     return Decimal(str(btc_usd)) * Decimal(str(usd_gtq))
@@ -95,12 +193,119 @@ def bridge_rate(from_to_gtq, to_to_gtq):
 
 
 def trades_by_utc_day(trades):
-    """Group Bisq trades by the UTC day they printed. Price is BTC in USD."""
+    """Median BTC/USD by the Precyos rate date.
+
+    Trades in ``[D-1 00:00 UTC, D 00:00 UTC)`` are the value for date D.
+    """
     grouped = {}
     for trade in trades or []:
-        day = utc_day(trade["trade_date"])
+        day = precyos_rate_day(trade["trade_date"])
         grouped.setdefault(day, []).append(Decimal(str(trade["price"])))
     return {day: median(prices) for day, prices in grouped.items() if prices}
+
+
+def iter_days(start, end):
+    day = start
+    while day <= end:
+        yield day
+        day += datetime.timedelta(days=1)
+
+
+def days_without_precyos(start, end, precyos_days):
+    """UTC days in the window that Precyos did not publish."""
+    missing = []
+    known = set(precyos_days or [])
+    for day in iter_days(start, end):
+        text = day.isoformat() if hasattr(day, "isoformat") else str(day)[:10]
+        if day not in known and text not in known:
+            missing.append(day)
+    return missing
+
+
+def default_refresh_start(end, stored_dates, bundle_last, rolling_days=14):
+    """Start of a refresh when the caller does not pass a from-date.
+
+    The rolling window is the last ``rolling_days`` dates through ``end``.
+    If any day after the bundled Precyos series and before that window has
+    no BTC/USD row yet, start at the first such day so the first run fills
+    the gap.
+    """
+    if isinstance(bundle_last, str):
+        bundle_last = datetime.date.fromisoformat(bundle_last)
+    rolling = end - datetime.timedelta(days=rolling_days - 1)
+    extended = bundle_last + datetime.timedelta(days=1)
+    if extended >= rolling:
+        return rolling
+    stored = set()
+    for day in stored_dates or []:
+        if isinstance(day, str):
+            stored.add(datetime.date.fromisoformat(day[:10]))
+        elif isinstance(day, datetime.datetime):
+            stored.add(day.date())
+        else:
+            stored.add(day)
+    day = extended
+    while day < rolling:
+        if day not in stored:
+            return day
+        day += datetime.timedelta(days=1)
+    return rolling
+
+
+def mapped_rate(mapping, day):
+    """Look up a date in a map keyed by date or by ISO string."""
+    if not mapping:
+        return None
+    if day in mapping:
+        return mapping[day]
+    text = day.isoformat() if hasattr(day, "isoformat") else str(day)[:10]
+    if text in mapping:
+        return mapping[text]
+    if isinstance(day, datetime.datetime):
+        return mapping.get(day.date())
+    return None
+
+
+def bisq_window(rate_date):
+    """Unix seconds for the trades Precyos stores as ``rate_date``.
+
+    The window is ``[rate_date - 1 day 00:00 UTC, rate_date 00:00 UTC)``.
+    ``timestamp_to`` is the last inclusive second, so a trade exactly at
+    midnight belongs to the next rate date.
+    """
+    end = _utc_midnight(rate_date)
+    return end - 86400, end - 1
+
+
+def collect_bisq_days(fetch_page, days, pause):
+    """Fetch Bisq trades for each Precyos rate date.
+
+    ``fetch_page(timestamp_from_seconds, timestamp_to_seconds)`` returns one
+    page sorted ascending. The request covers the previous UTC day. A day
+    with no trades contributes nothing. A full page of 2000 trades is
+    followed by the next page of that same window. ``pause`` runs between
+    pages and between days.
+    """
+    collected = []
+    first_day = True
+    for day in days:
+        if not first_day:
+            pause()
+        first_day = False
+        start_ts, end_ts = bisq_window(day)
+        cursor = start_ts
+        while cursor < end_ts:
+            page = list(fetch_page(cursor, end_ts) or [])
+            if not page:
+                break
+            collected.extend(page)
+            last_ms = max(int(trade["trade_date"]) for trade in page)
+            next_cursor = (last_ms // 1000) + 1
+            if next_cursor <= cursor or len(page) < 2000:
+                break
+            cursor = next_cursor
+            pause()
+    return collected
 
 
 def page_bisq(fetch_page, start_date, end_date, pause):
